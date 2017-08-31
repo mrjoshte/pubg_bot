@@ -1,31 +1,46 @@
+[
 {
-	pubgName: '',
-	discordName: '',
-	wins:
+	"pubgName": "",
+	"discordName": "",
+	"wins":
 	{
-		fpSolo:0,
-		fpDuos:0,
-		fpSquad:0,
-		tpSolo:0,
-		tpDuos:0,
-		tpSquad:0
+		"solo":0,
+		"duo":0,
+		"squad":0
 	}
-	kills:
+	"kills":
 	{
-		fpSolo:0,
-		fpDuos:0,
-		fpSquad:0,
-		tpSolo:0,
-		tpDuos:0,
-		tpSquad:0
+		"solo":0,
+		"duo":0,
+		"squad":0
 	}
-	damanage:
+	"damage":
 	{
-		fpSolo:0,
-		fpDuos:0,
-		fpSquad:0,
-		tpSolo:0,
-		tpDuos:0,
-		tpSquad:0
+		"solo":0,
+		"duo":0,
+		"squad":0
+	}
+},
+{
+	"pubgName": "",
+	"discordName": "",
+	"wins":
+	{
+		"solo":0,
+		"duo":0,
+		"squad":0
+	}
+	"kills":
+	{
+		"solo":0,
+		"duo":0,
+		"squad":0
+	}
+	"damage":
+	{
+		"solo":0,
+		"duo":0,
+		"squad":0
 	}
 }
+]
