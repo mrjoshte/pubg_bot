@@ -13,10 +13,11 @@
     "type": "git",
     "url": "https://github.com/mrjoshte/pubg_bot"
   },
-  "dependencies":{
+  "dependencies": {
     "discord.js": "11.1.0",
     "long": "3.2.0",
     "prim-media": "0.0.1",
+    "pubg-api-redis": "^3.4.0",
     "safe-bufffer": "5.0.1",
     "snekfetch": "3.2.9",
     "tweetnacl": "0.14.5",
