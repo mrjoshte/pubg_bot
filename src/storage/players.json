@@ -1,0 +1,31 @@
+{
+	pubgName: '',
+	discordName: '',
+	wins:
+	{
+		fpSolo:0,
+		fpDuos:0,
+		fpSquad:0,
+		tpSolo:0,
+		tpDuos:0,
+		tpSquad:0
+	}
+	kills:
+	{
+		fpSolo:0,
+		fpDuos:0,
+		fpSquad:0,
+		tpSolo:0,
+		tpDuos:0,
+		tpSquad:0
+	}
+	damanage:
+	{
+		fpSolo:0,
+		fpDuos:0,
+		fpSquad:0,
+		tpSolo:0,
+		tpDuos:0,
+		tpSquad:0
+	}
+}
