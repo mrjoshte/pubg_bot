@@ -1,27 +1,29 @@
 {
-  "name": "PUBG-BOT",
-  "description": "A multi-purpose bot for discord servers to give user data",
+  "name": "pubg-bot",
   "version": "0.0.1",
-  "author": "Josh Engelhardt <mrjoshte@gmail.com>",
-  "contributors": [
-    {
-      "name": "Josh Engelhardt",
-      "email": "mrjoshte@gmail.com"
-    }
-  ],
+  "description": "This is a discord bot in order to get player statistics for playerunknown's battlegrounds",
+  "main": "server.js",
+  "dependencies": {
+    "pubg-api-redis": "^3.4.0",
+    "discord.js": "^11.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mrjoshte/pubg_bot"
+    "url": "git+https://github.com/mrjoshte/pubg_bot.git"
   },
-  "dependencies": {
-    "discord.js": "11.1.0",
-    "long": "3.2.0",
-    "prim-media": "0.0.1",
-    "pubg-api-redis": "^3.4.0",
-    "safe-bufffer": "5.0.1",
-    "snekfetch": "3.2.9",
-    "tweetnacl": "0.14.5",
-    "ultron": "1.1.0",
-    "ws": "2.3.1"
-  }
+  "keywords": [
+    "pubg",
+    "discord"
+  ],
+  "author": "Josh Engelhardt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mrjoshte/pubg_bot/issues"
+  },
+  "homepage": "https://github.com/mrjoshte/pubg_bot#readme"
 }
