@@ -2,7 +2,7 @@
   "name": "pubg-bot",
   "version": "0.0.1",
   "description": "This is a discord bot in order to get player statistics for playerunknown's battlegrounds",
-  "main": "server.js",
+  "main": "bot.js",
   "dependencies": {
     "pubg-api-redis": "^3.4.0",
     "discord.js": "^11.1.0"
