@@ -6,6 +6,7 @@
 const {PubgAPI, PubgAPIErrors, REGION, SEASON, MATCH} = require('pubg-api-redis');
 const Discord = require('discord.js');
 var pubgTrackerAPIKey = '21c941ec-f966-4919-ad40-7976405ca06b';
+var auth = require('./auth.json');
 
 // If no Redis configuration it wont be cached
 const api = new PubgAPI({
@@ -15,6 +16,11 @@ const api = new PubgAPI({
     port: 6379,
     expiration: 300, // Optional - defaults to 300.
   },
+});
+
+var bot = new Discord.Client({
+   token: auth.token,
+   autorun: true
 });
 
 
