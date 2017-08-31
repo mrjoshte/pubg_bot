@@ -1,0 +1,16 @@
+{
+	pubgName: '',
+	discordName: '',
+	wins:
+	{
+		solo:5,	
+		duo:2,
+		squad:7
+	}
+	kills:
+	{
+		solo:45,
+		duo:17,
+		squad:150
+	}
+}

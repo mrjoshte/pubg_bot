@@ -19,14 +19,17 @@ const api = new PubgAPI({
 
 
 
+//Users will set their pubg name in their note?
+
+//We will have to save their discord username and somehow attach it to their pubg profile
+//There will need to be a registration process for it..
 
 
-
-api.getProfileByNickname('javilobo8')
+api.getProfileByNickname(name)
   .then((profile) => {
     const data = profile.content;
     const stats = profile.getStats({
-      region: REGION.ALL, // defaults to profile.content.selectedRegion
+      region: REGION.NA, // defaults to profile.content.selectedRegion
       season: SEASON.EA2017pre3, // defaults to profile.content.defaultSeason
       match: MATCH.SOLO // defaults to SOLO
     });
@@ -37,3 +40,6 @@ api.getAccountBySteamID('76561198084956266')
   .then((account) => {
     console.log(account);
   });
+  
+  
+
