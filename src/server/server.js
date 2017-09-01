@@ -7,6 +7,7 @@ const {PubgAPI, PubgAPIErrors, REGION, SEASON, MATCH} = require('pubg-api-redis'
 const playerFile = "../storage/players.json";
 const fs = require('fs');
 var pubgTrackerAPIKey = '21c941ec-f966-4919-ad40-7976405ca06b';
+var bot = require('./bot.js');
 
 // If no Redis configuration it wont be cached
 const api = new PubgAPI({
@@ -50,14 +51,16 @@ var fetchUpdatedPlayerData = function(savedPlayerList, creatingNewPlayer){
 						//update the file
 							player.wins[matchType] = stats.performance.wins;
 							player.kills[matchType] = stats.combat.kills;
-							player.damage[matchType] = stats.support.damageDealt
+							player.damage[matchType] = stats.support.damageDealt;
 					});
 					savedPlayerList = getPlayerList();
 					if(creatingNewPlayer){
 						savedPlayerList.push(player);
 					}
-					savedPlayerList.indexOf(player);
 					writeUpdatedPlayerListToFile(savedPlayerList);
+					if(creatingNewPlayer){
+						bot.newPlayerAdded(player.pubgName);
+					}
 				  });
 		}
 };
