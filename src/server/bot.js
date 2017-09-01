@@ -37,9 +37,15 @@ bot.on("message", (message, channel) => {
 	}
 });
 
+
+setInterval(function(){ server.fetchData() }, 20000);
+
 module.exports = 
 {
 	newPlayerAdded: function(pubgName){
-		bot.sendMessage(channel, "Hello");
+		bot.sendMessage(channel, pubgName + " was succesfully added!");
+	},
+	chickenDinner: function(winner){
+		bot.sendMessage(channel, winner.id + " just won a " + winner.match + " game with " + winner.kills + " and did " winner.damage + " damage!");
 	}
 }

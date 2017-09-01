@@ -44,6 +44,8 @@ var fetchUpdatedPlayerData = function(savedPlayerList, creatingNewPlayer){
 						if(stats.performance.wins > player.wins[matchType] && !creatingNewPlayer){
 							//save the new data to send to the server
 						var winner = new Object();
+							winner.id = player.discordName;
+							winner.match = matchType;
 							winner.kills = stats.combat.kills - player.kills[matchType];
 							winner.damage = stats.support.damageDealt - savedPlayerList[i].damage[matchType];
 							sendWinToDiscord(winner);
@@ -72,7 +74,7 @@ var writeUpdatedPlayerListToFile = function(playerList){
 };
 
 var sendWinToDiscord = function(winner){
-	//TODO
+	bot.chickenDinner(winner);
 };
 
 module.exports = 
@@ -105,5 +107,8 @@ createNewPlayer: function(discordName, pubgName){
 	else{
 		return false;
 	}
+}
+fetchData: function(){
+	fetchUpdatedPlayerData(getPlayerList());
 }
 };
