@@ -24,20 +24,29 @@ const api = new PubgAPI({
     },*/
 });
 
-var getPlayerList = function() {
+var getPlayerMap = function() {
 	try {
         return JSON.parse(fs.readFileSync(playerFile));
     } catch(e) {
-        return new Array();
+        return new Map();
     }
 };
 
-var fetchUpdatedPlayerData = function(savedPlayerList, creatingNewPlayer) {
+var fetchUpdatedPlayerData = function(savedplayerMap, creatingNewPlayer) {
     //This will iterate through all the players
     debugger;
-    for (var i = 0; i < savedPlayerList.length; i++) {
+
+	if(savedplayerMap === {})
+		return;
+	//console.log(savedplayerMap);
+	for(var id in savedplayerMap) {
+		//console.log('Player');
+		var player = savedplayerMap[id];
+		//console.log(player);
+		
+    //for (var i = 0; i < savedplayerMap.length; i++) {
         //This will fetch the player from the pubg api
-        var player = savedPlayerList[i];
+        //var player = savedplayerMap[i];
         api.getProfileByNickname(player.pubgName)
             .then((profile) => {
                 const data = profile.content;
@@ -66,16 +75,24 @@ var fetchUpdatedPlayerData = function(savedPlayerList, creatingNewPlayer) {
                     player.kills[matchType] = kills;
                     player.damage[matchType] = damageDealt;
                 });
-                savedPlayerList = getPlayerList();
-                if (!creatingNewPlayer) {
-                    for (var i = 0; i < savedPlayerList.length; i++) {
-                        if (savedPlayerList[i].discordName === player.discordName) {
-                            savedPlayerList.splice(i);
-                        }
-                    }
+				
+				// Get the list of players again since this is a async api call
+                savedplayerMap = getPlayerMap();
+                if (creatingNewPlayer) {
+                    savedplayerMap[player.discordName] = player;
+					writeUpdatedplayerMapToFile(savedplayerMap);
+				}
+				else {
+					//for (var i = 0; i < savedplayerMap.length; i++) {
+						var tempPlayer = savedplayerMap[player.discordName];
+                        //if (savedplayerMap[i].discordName === player.discordName) {
+							if(JSON.stringify(tempPlayer) !== JSON.stringify(player)){
+								savedplayerMap[player.discordName] = player;
+								writeUpdatedplayerMapToFile(savedplayerMap);
+							}
+                       // }
+                   // }
                 }
-                savedPlayerList.push(player);
-                writeUpdatedPlayerListToFile(savedPlayerList);
                 if (creatingNewPlayer) {
                     bot.newPlayerAdded(player.pubgName);
                 }
@@ -83,27 +100,28 @@ var fetchUpdatedPlayerData = function(savedPlayerList, creatingNewPlayer) {
     }
 };
 
-var writeUpdatedPlayerListToFile = function(playerList) {
-    fs.writeFile(playerFile, JSON.stringify(playerList), function(err) {
-        //something went wrong?
-    });
+var writeUpdatedplayerMapToFile = function(playerMap) {
+	try {
+		fs.writeFile(playerFile, JSON.stringify(playerMap));
+	}
+	catch(e) {
+		console.log("Error writing to player.json");
+	}
 };
 
 var sendWinToDiscord = function(winner) {
-    console.log(winner);
     bot.chickenDinner(winner);
 };
 
 module.exports = {
     createNewPlayer: function(discordName, pubgName) {
-        //double check that the name of this user isn't in the list already
-        var playerList = getPlayerList();
-        var newPlayer = true;
-        for (var i = 0; i < playerList.length; i++) {
-            if (playerList[i].discordName === discordName) {
-                newPlayer = false;
-            }
-        }
+        //double check that the name of this user isn't in the map already
+        var playerMap = getPlayerMap();
+		
+		var newPlayer = false;
+		if(playerMap[discordName] == null)
+			newPlayer = true;
+
         if (newPlayer) {
             debugger;
             api.getProfileByNickname(pubgName)
@@ -126,7 +144,8 @@ module.exports = {
                         duo: 0,
                         squad: 0
                     };
-                    fetchUpdatedPlayerData([player], true);
+					playerMap[discordName] = player;
+                    fetchUpdatedPlayerData(playerMap, true);
                     return true;
                 }, function(error) {
                     return false;
@@ -136,6 +155,6 @@ module.exports = {
         }
     },
     fetchData: function() {
-        fetchUpdatedPlayerData(getPlayerList(), false);
+        fetchUpdatedPlayerData(getPlayerMap(), false);
     }
 };
