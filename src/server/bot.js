@@ -60,4 +60,4 @@ setInterval(
     function() {
         console.log("Starting fetch.")
         server.fetchData();
-    }, 10000);
+    }, 100000);

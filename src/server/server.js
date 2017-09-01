@@ -32,7 +32,7 @@ var getPlayerMap = function() {
     }
 };
 
-var fetchUpdatedPlayerData = function(savedplayerMap, creatingNewPlayer) {
+var fetchUpdatedPlayerData = function(savedplayerMap) {
     //This will iterate through all the players
     debugger;
 
@@ -61,7 +61,7 @@ var fetchUpdatedPlayerData = function(savedplayerMap, creatingNewPlayer) {
 					var kills = parseInt(stats.combat.kills);
 					var damageDealt = parseInt(stats.support.damageDealt);
 					
-                    if (wins > player.wins[matchType] && !creatingNewPlayer) {
+                    if (wins > player.wins[matchType] && !player.init) {
                         //save the new data to send to the server
                         var winner = new Object();
                         winner.id = player.discordName;
@@ -78,9 +78,11 @@ var fetchUpdatedPlayerData = function(savedplayerMap, creatingNewPlayer) {
 				
 				// Get the list of players again since this is a async api call
                 savedplayerMap = getPlayerMap();
-                if (creatingNewPlayer) {
+                if (player.init) {
+					player.init = false;
                     savedplayerMap[player.discordName] = player;
 					writeUpdatedplayerMapToFile(savedplayerMap);
+                    bot.newPlayerAdded(player.pubgName);
 				}
 				else {
 					//for (var i = 0; i < savedplayerMap.length; i++) {
@@ -92,9 +94,6 @@ var fetchUpdatedPlayerData = function(savedplayerMap, creatingNewPlayer) {
 							}
                        // }
                    // }
-                }
-                if (creatingNewPlayer) {
-                    bot.newPlayerAdded(player.pubgName);
                 }
             });
     }
@@ -144,6 +143,7 @@ module.exports = {
                         duo: 0,
                         squad: 0
                     };
+					player.init = true;
 					playerMap[discordName] = player;
                     fetchUpdatedPlayerData(playerMap, true);
                     return true;
