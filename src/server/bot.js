@@ -43,12 +43,13 @@ exports.newPlayerAdded = function(pubgName){
 	};
 
 exports.chickenDinner = function(winner){
-		channel.send(winner.id + " just won a " + winner.match + " game with " + winner.kills + " and did " + winner.damage + " damage!");
+		bot.channels.get('352831880602845185').send(winner.id + " just won a " + winner.match + " game with " + winner.kills + " and did " + winner.damage + " damage!");
 	};
-
 
 setInterval(
 	function(){
+		//console.log(bot.channels.get('352831880602845185'));
 		console.log("Starting fetch.")
-		server.fetchData() 
+		//console.log(channel);
+		server.fetchData();
 	}, 20000);
