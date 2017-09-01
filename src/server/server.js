@@ -47,7 +47,7 @@ var fetchUpdatedPlayerData = function(savedPlayerList, creatingNewPlayer){
 							winner.id = player.discordName;
 							winner.match = matchType;
 							winner.kills = stats.combat.kills - player.kills[matchType];
-							winner.damage = stats.support.damageDealt - savedPlayerList[i].damage[matchType];
+							winner.damage = stats.support.damageDealt - player.damage[matchType];
 							sendWinToDiscord(winner);
 						}
 						//update the file
@@ -107,7 +107,7 @@ createNewPlayer: function(discordName, pubgName){
 	else{
 		return false;
 	}
-}
+},
 fetchData: function(){
 	fetchUpdatedPlayerData(getPlayerList());
 }
