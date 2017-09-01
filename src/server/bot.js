@@ -33,9 +33,18 @@ bot.on("message", (message, channel) => {
 		console.log("Setting channel");
 		channel = message.channel;
 		message.channel.send(channel.name + " has been set");
-		console.log(channel);
+		//console.log(channel);
 	}
 });
+
+
+exports.newPlayerAdded = function(pubgName){
+		channel.send(channel, pubgName + " was succesfully added!");
+	};
+
+exports.chickenDinner = function(winner){
+		channel.send(winner.id + " just won a " + winner.match + " game with " + winner.kills + " and did " + winner.damage + " damage!");
+	};
 
 
 setInterval(
@@ -43,13 +52,3 @@ setInterval(
 		console.log("Starting fetch.")
 		server.fetchData() 
 	}, 20000);
-
-module.exports = 
-{
-	newPlayerAdded: function(pubgName){
-		bot.sendMessage(channel, pubgName + " was succesfully added!");
-	},
-	chickenDinner: function(winner){
-		bot.sendMessage(channel, winner.id + " just won a " + winner.match + " game with " + winner.kills + " and did " + winner.damage + " damage!");
-	}
-}

@@ -74,6 +74,7 @@ var writeUpdatedPlayerListToFile = function(playerList){
 };
 
 var sendWinToDiscord = function(winner){
+	console.log(winner);
 	bot.chickenDinner(winner);
 };
 
@@ -109,6 +110,6 @@ createNewPlayer: function(discordName, pubgName){
 	}
 },
 fetchData: function(){
-	fetchUpdatedPlayerData(getPlayerList());
+	fetchUpdatedPlayerData(getPlayerList(), false);
 }
 };
