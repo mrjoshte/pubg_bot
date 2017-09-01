@@ -26,28 +26,15 @@ const api = new PubgAPI({
 
 var getPlayerMap = function() {
 	try {
+		
         return JSON.parse(fs.readFileSync(playerFile));
     } catch(e) {
         return new Map();
     }
 };
 
-var fetchUpdatedPlayerData = function(savedplayerMap) {
-    //This will iterate through all the players
-    debugger;
-
-	if(savedplayerMap === {})
-		return;
-	//console.log(savedplayerMap);
-	for(var id in savedplayerMap) {
-		//console.log('Player');
-		var player = savedplayerMap[id];
-		//console.log(player);
-		
-    //for (var i = 0; i < savedplayerMap.length; i++) {
-        //This will fetch the player from the pubg api
-        //var player = savedplayerMap[i];
-        api.getProfileByNickname(player.pubgName)
+var getPlayerDataFromAPI = function(player){
+	api.getProfileByNickname(player.pubgName)
             .then((profile) => {
                 const data = profile.content;
                 Object.keys(MATCH).forEach(function(match) {
@@ -61,7 +48,7 @@ var fetchUpdatedPlayerData = function(savedplayerMap) {
 					var kills = parseInt(stats.combat.kills);
 					var damageDealt = parseInt(stats.support.damageDealt);
 					
-                    if (wins > player.wins[matchType] && !player.init) {
+                    if (!player.init && wins > player.wins[matchType]) {
                         //save the new data to send to the server
                         var winner = new Object();
                         winner.id = player.discordName;
@@ -79,7 +66,7 @@ var fetchUpdatedPlayerData = function(savedplayerMap) {
 				// Get the list of players again since this is a async api call
                 savedplayerMap = getPlayerMap();
                 if (player.init) {
-					player.init = false;
+					player.init = 0;
                     savedplayerMap[player.discordName] = player;
 					writeUpdatedplayerMapToFile(savedplayerMap);
                     bot.newPlayerAdded(player.pubgName);
@@ -96,6 +83,24 @@ var fetchUpdatedPlayerData = function(savedplayerMap) {
                    // }
                 }
             });
+}
+
+var fetchUpdatedPlayerData = function(savedplayerMap) {
+    //This will iterate through all the players
+    debugger;
+
+	if(savedplayerMap === {})
+		return;
+	//console.log(savedplayerMap);
+	for(var id in savedplayerMap) {
+		//console.log('Player');
+		var player = savedplayerMap[id];
+		//console.log(player);
+		getPlayerDataFromAPI(player);
+    //for (var i = 0; i < savedplayerMap.length; i++) {
+        //This will fetch the player from the pubg api
+        //var player = savedplayerMap[i];
+        
     }
 };
 
@@ -147,9 +152,9 @@ module.exports = {
                         duo: 0,
                         squad: 0
                     };
-					player.init = true;
+					player.init = 1;
 					playerMap[discordName] = player;
-                    fetchUpdatedPlayerData(playerMap, true);
+                    getPlayerDataFromAPI(player);
                     return true;
                 }, function(error) {
                     return false;
@@ -159,7 +164,7 @@ module.exports = {
         }
     },
     fetchData: function() {
-        fetchUpdatedPlayerData(getPlayerMap(), false);
+        fetchUpdatedPlayerData(getPlayerMap());
     },
 	calculateLeaderboard: function(matchType){
 		if(MATCH[matchType] != undefined){
