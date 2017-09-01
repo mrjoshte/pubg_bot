@@ -48,8 +48,8 @@ bot.on("message", (message, channel) => {
 			var channelId = readChannelFile();
 			matchType = matchType.toLowerCase();
 			bot.channels.get(channelId).send("The current standings for "+matchType+" matches are..\n"+
-				'<@' + leader.wins.id + '> ' + ' with ' + leader.wins.num + ' wins.\n'+
-				'<@' + leader.kills.id + '> ' + ' with ' + leader.kills.num + ' kills.\n'+
+				'<@' + leader.wins.id + '> ' + ' with ' + leader.wins.num + ' win(s),\n'+
+				'<@' + leader.kills.id + '> ' + ' with ' + leader.kills.num + ' kills, and\n'+
 				'<@' + leader.damage.id + '> ' + ' with ' + leader.damage.num + ' damage.\n');
 			}
 	}
@@ -67,7 +67,7 @@ exports.newPlayerAdded = function(pubgName) {
 
 exports.chickenDinner = function(winner) {
     var channelId = readChannelFile();
-    bot.channels.get(channelId).send('<@everyone> - <@' + winner.id + '>' + " just won a " + winner.match + " game!\n They had " + winner.kills + " kills and did " + winner.damage + " damage!");
+    bot.channels.get(channelId).send('Hey @everyone, <@' + winner.id + '>' + " just won a " + winner.match + " game!\n He had " + winner.kills + " kills and did " + winner.damage + " damage!");
 };
 
 setInterval(
