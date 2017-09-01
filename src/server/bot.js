@@ -39,6 +39,20 @@ bot.on("message", (message, channel) => {
             //something went wrong?
         });
     }
+	else if(message.content.startsWith("!leaderboard ")){
+		var matchType = message.content.substring(13, message.content.length);
+		matchType = matchType.toUpperCase();
+		
+			var leader = server.calculateLeaderboard(matchType);
+			if(leader != undefined){
+			var channelId = readChannelFile();
+			matchType = matchType.toLowerCase();
+			bot.channels.get(channelId).send("The current standings for "+matchType+" matches are..\n"+
+				'<@' + leader.wins.id + '> ' + ' with ' + leader.wins.num + ' wins.\n'+
+				'<@' + leader.kills.id + '> ' + ' with ' + leader.kills.num + ' kills.\n'+
+				'<@' + leader.damage.id + '> ' + ' with ' + leader.damage.num + ' damage.\n');
+			}
+	}
 });
 
 var readChannelFile = function() {
@@ -53,7 +67,7 @@ exports.newPlayerAdded = function(pubgName) {
 
 exports.chickenDinner = function(winner) {
     var channelId = readChannelFile();
-    bot.channels.get(channelId).send('<@' + winner.id + '>' + " just won a " + winner.match + " game with " + winner.kills + " kills and did " + winner.damage + " damage!");
+    bot.channels.get(channelId).send('<@everyone> - <@' + winner.id + '>' + " just won a " + winner.match + " game!\n They had " + winner.kills + " kills and did " + winner.damage + " damage!");
 };
 
 setInterval(

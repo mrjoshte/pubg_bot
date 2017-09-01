@@ -99,6 +99,10 @@ var fetchUpdatedPlayerData = function(savedplayerMap) {
     }
 };
 
+var initLeader = function(){
+	return {wins:{num:0, id:0}, kills:{num:0, id:0}, damage:{num:0, id:0}};;
+}
+
 var writeUpdatedplayerMapToFile = function(playerMap) {
 	try {
 		fs.writeFile(playerFile, JSON.stringify(playerMap));
@@ -156,5 +160,30 @@ module.exports = {
     },
     fetchData: function() {
         fetchUpdatedPlayerData(getPlayerMap(), false);
-    }
+    },
+	calculateLeaderboard: function(matchType){
+		if(MATCH[matchType] != undefined){
+			matchType = matchType.toLowerCase();
+			console.log("calculating leaderboard");
+			fetchUpdatedPlayerData(getPlayerMap());
+			var players = getPlayerMap();
+			var leader = initLeader();
+			for(id in players){
+				var player = players[id];
+				if(player.wins[matchType] > leader.wins.num){
+					leader.wins.num = player.wins[matchType];
+					leader.wins.id = player.discordName;
+				}
+				if(player.kills[matchType] > leader.kills.num){
+					leader.kills.num = player.kills[matchType];
+					leader.kills.id = player.discordName;
+				}
+				if(player.damage[matchType] > leader.damage.num){
+					leader.damage.num = player.damage[matchType];
+					leader.damage.id = player.discordName;
+				}
+			}
+			return leader;
+		}
+	}
 };
