@@ -39,14 +39,20 @@ var getPlayerDataFromAPI = function(player){
                 const data = profile.content;
                 Object.keys(MATCH).forEach(function(match) {
                     var matchType = MATCH[match];
-                    stats = profile.getStats({
-                        region: REGION.NA,
-                        match: matchType
-                    });
+					try{
+						stats = profile.getStats({
+							region: REGION.NA,
+							match: matchType
+						});
+						var wins = parseInt(stats.performance.wins);
+						var kills = parseInt(stats.combat.kills);
+						var damageDealt = parseInt(stats.support.damageDealt);
+					}catch(e){
+						var wins = 0;
+						var kills = 0;
+						var damageDealt = 0;
+					}
                     //This is where we actually compare the saved vs pulled
-					var wins = parseInt(stats.performance.wins);
-					var kills = parseInt(stats.combat.kills);
-					var damageDealt = parseInt(stats.support.damageDealt);
 					
                     if (!player.init && wins > player.wins[matchType]) {
                         //save the new data to send to the server

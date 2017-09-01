@@ -68,7 +68,7 @@ exports.newPlayerAdded = function(pubgName) {
 exports.chickenDinner = function(winner) {
     var channelId = readChannelFile();
     bot.channels.get(channelId).send('Hey @everyone, <@' + winner.id + '>' + " just won a " + winner.match + " game!\n"
-	+"He had " + winner.kills + " kills and did " + winner.damage + " damage!");
+	+"He got " + winner.kills + " kills and did " + winner.damage + " damage!");
 };
 
 setInterval(
