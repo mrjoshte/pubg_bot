@@ -1,2 +1,2 @@
-cd /src/server/
+cd src/server/
 node bot.js

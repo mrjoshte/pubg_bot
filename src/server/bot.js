@@ -6,7 +6,7 @@ var auth = require('../../auth.json');
 var server = require('./server.js');
 const Discord = require('discord.js');
 const fs = require('fs');
-const channelFile = "channel.json";
+const channelFile = "../storage/channel.json";
 
 var bot = new Discord.Client();
 debugger;
@@ -25,7 +25,7 @@ bot.on("message", (message, channel) => {
     // Add a player to the list of players
     if (message.content.startsWith("!addme ")) {
         console.log("Adding new user");
-        if (server.createNewPlayer(message.author, message.content.substring(7, message.content.length))) {
+        if (server.createNewPlayer(message.author.id, message.content.substring(7, message.content.length))) {
             message.channel.send(message.content.substring(7, message.content.length) + " was added successfully!");
         }
     }
@@ -53,12 +53,11 @@ exports.newPlayerAdded = function(pubgName) {
 
 exports.chickenDinner = function(winner) {
     var channelId = readChannelFile();
-    bot.channels.get(channelId).send('<@' + winner.id + '>' + " just won a " + winner.match + " game with " + winner.kills + " and did " + winner.damage + " damage!");
+    bot.channels.get(channelId).send('<@' + winner.id + '>' + " just won a " + winner.match + " game with " + winner.kills + " kills and did " + winner.damage + " damage!");
 };
 
 setInterval(
     function() {
         console.log("Starting fetch.")
-        //console.log(channel);
         server.fetchData();
     }, 20000);

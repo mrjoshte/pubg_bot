@@ -25,7 +25,11 @@ const api = new PubgAPI({
 });
 
 var getPlayerList = function() {
-    return JSON.parse(fs.readFileSync(playerFile));
+	try {
+        return JSON.parse(fs.readFileSync(playerFile));
+    } catch(e) {
+        return new Array();
+    }
 };
 
 var fetchUpdatedPlayerData = function(savedPlayerList, creatingNewPlayer) {
@@ -37,7 +41,6 @@ var fetchUpdatedPlayerData = function(savedPlayerList, creatingNewPlayer) {
         api.getProfileByNickname(player.pubgName)
             .then((profile) => {
                 const data = profile.content;
-                //for(var j=0; j<MATCH.length; j++){
                 Object.keys(MATCH).forEach(function(match) {
                     var matchType = MATCH[match];
                     stats = profile.getStats({
@@ -45,20 +48,23 @@ var fetchUpdatedPlayerData = function(savedPlayerList, creatingNewPlayer) {
                         match: matchType
                     });
                     //This is where we actually compare the saved vs pulled
-
-                    if (stats.performance.wins > player.wins[matchType] && !creatingNewPlayer) {
+					var wins = parseInt(stats.performance.wins);
+					var kills = parseInt(stats.combat.kills);
+					var damageDealt = parseInt(stats.support.damageDealt);
+					
+                    if (wins > player.wins[matchType] && !creatingNewPlayer) {
                         //save the new data to send to the server
                         var winner = new Object();
                         winner.id = player.discordName;
                         winner.match = matchType;
-                        winner.kills = stats.combat.kills - player.kills[matchType];
-                        winner.damage = stats.support.damageDealt - player.damage[matchType];
+                        winner.kills = kills - player.kills[matchType];
+                        winner.damage = damageDealt - player.damage[matchType];
                         sendWinToDiscord(winner);
                     }
                     //update the file
-                    player.wins[matchType] = stats.performance.wins;
-                    player.kills[matchType] = stats.combat.kills;
-                    player.damage[matchType] = stats.support.damageDealt;
+                    player.wins[matchType] = wins;
+                    player.kills[matchType] = kills;
+                    player.damage[matchType] = damageDealt;
                 });
                 savedPlayerList = getPlayerList();
                 if (!creatingNewPlayer) {
