@@ -21,17 +21,7 @@ bot.on("ready", () => {
 
 bot.on("message", (message, channel) => {
     console.log("Messaged detected");
-
-    // Add a player to the list of players
-    if (message.content.startsWith("!addme ")) {
-        console.log("Adding new user");
-        if (server.createNewPlayer(message.author.id, message.content.substring(7, message.content.length))) {
-            message.channel.send(message.content.substring(7, message.content.length) + " was added successfully!");
-        }
-    }
-
-    // Sets the channel to send messages to
-    else if (message.content.startsWith("!setchannel")) {
+	if (message.content.startsWith("!setchannel")) {
         console.log("Setting channel");
         channel = message.channel;
         message.channel.send(channel.name + " has been set");
@@ -39,44 +29,81 @@ bot.on("message", (message, channel) => {
             //something went wrong?
         });
     }
-	else if(message.content.startsWith("!leaderboard ")){
-		var matchType = message.content.substring(13, message.content.length);
-		matchType = matchType.toUpperCase();
-		
-			var leader = server.calculateLeaderboard(matchType);
-			if(leader != undefined){
-			var channelId = readChannelFile();
-			matchType = matchType.toLowerCase();
-			var outputMessage = "The current standings for "+matchType+" matches are..\n";
-				for(var i =0; i < leader.wins.id.length; i++){
-					if(i == 0){
-						outputMessage += ' <@' + leader.wins.id[i] + '>';
-					}
-					else{
-						if(leader.wins.id.length > 2){
-							outputMessage += ', ';
-						}
-						if(i == leader.wins.id.length-1){
-							outputMessage+='and ';
-						}
-						outputMessage+='<@' + leader.wins.id[i] + '>';
-					}
-				}
-				if(i > 1){
-					outputMessage += ' tied with ' + leader.wins.num + ' win(s),\n';
-				}
-				else{
-					if(leader.wins.num == 1){
-					outputMessage += ' with ' + leader.wins.num + ' win,\n';
-					}
-					else{
-						outputMessage += ' with ' + leader.wins.num + ' win,\n';
-					}
-				}
-				outputMessage +='<@' + leader.kills.id + '> ' + ' with ' + leader.kills.num + ' kills, and\n'+
-				'<@' + leader.damage.id + '> ' + ' with ' + leader.damage.num + ' damage.\n';
-			bot.channels.get(channelId).send(outputMessage);
+    // Add a player to the list of players
+	var hasChannel = false;
+	try{
+		var channel = readChannelFile();
+		hasChannel = true;
+	}catch(e){}
+	if(hasChannel && message.channel.id === channel){
+		if (message.content.startsWith("!addme ")) {
+			console.log("Adding new user");
+			if (server.createNewPlayer(message.author.id, message.content.substring(7, message.content.length))) {
+				message.channel.send(message.content.substring(7, message.content.length) + " was added successfully!");
 			}
+		}
+
+		// Sets the channel to send messages to
+		else if(message.content.startsWith("!leaderboard ")){
+			var matchType = message.content.substring(13, message.content.length);
+			matchType = matchType.toUpperCase();
+			
+				var leader = server.calculateLeaderboard(matchType);
+				if(leader != undefined){
+				var channelId = readChannelFile();
+				matchType = matchType.toLowerCase();
+				var outputMessage = "The current standings for "+matchType+" matches are..\n";
+					for(var i =0; i < leader.wins.id.length; i++){
+						if(i == 0){
+							outputMessage += ' <@' + leader.wins.id[i] + '>';
+						}
+						else{
+							if(leader.wins.id.length > 2){
+								outputMessage += ', ';
+							}
+							if(i == leader.wins.id.length-1){
+								outputMessage+='and ';
+							}
+							outputMessage+='<@' + leader.wins.id[i] + '>';
+						}
+					}
+					if(i > 1){
+						outputMessage += ' tied with ' + leader.wins.num + ' win(s),\n';
+					}
+					else{
+						if(leader.wins.num == 1){
+						outputMessage += ' with ' + leader.wins.num + ' win,\n';
+						}
+						else{
+							outputMessage += ' with ' + leader.wins.num + ' win,\n';
+						}
+					}
+					outputMessage +='<@' + leader.kills.id + '> ' + ' with ' + leader.kills.num + ' kills, and\n'+
+					'<@' + leader.damage.id + '> ' + ' with ' + leader.damage.num + ' damage.\n';
+				bot.channels.get(channelId).send(outputMessage);
+				}
+		}
+		else if(message.content.startsWith("!stats")){
+			var matchType = message.content.substring(7, message.content.length).toLowerCase();
+			var discordUser = message.author.id;
+			var channelId = readChannelFile();
+			var player = server.calculatePlayerStats(matchType.toUpperCase(), discordUser);
+			if(player == undefined){
+				bot.channels.get(channelId).send("Incorrect entry. Acceptable stats commands are\n!stats, !stats solo, !stats duo, !stats squad");
+			}
+			else{
+				var outputMessage = '<@' + player.discordName + '> here are your current stats\n';
+				if(matchType === ""){
+					outputMessage += 'For solo you have ' +player.wins["solo"]+' wins, '+player.kills["solo"]+' kills, and '+player.damage["solo"]+' damage\n';
+					outputMessage += 'For duos you have ' +player.wins["duo"]+' wins, '+player.kills["duo"]+' kills, and '+player.damage["duo"]+' damage\n';
+					outputMessage += 'For squad you have ' +player.wins["squad"]+' wins, '+player.kills["squad"]+' kills, and '+player.damage["squad"]+' damage\n';
+					}
+				else{
+					outputMessage += 'For ' + matchType+ ' you have ' +player.wins[matchType]+' wins, '+player.kills[matchType]+' kills, and '+player.damage[matchType]+' damage\n';
+				}
+				bot.channels.get(channelId).send(outputMessage);
+			}
+		}
 	}
 });
 

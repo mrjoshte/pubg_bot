@@ -27,8 +27,14 @@ const api = new PubgAPI({
 
 var getPlayerMap = function() {
 	try {
-		
         return JSON.parse(fs.readFileSync(playerFile));
+    } catch(e) {
+        return new Map();
+    }
+};
+var getPlayer = function(discordId){
+	try {
+		return JSON.parse(fs.readFileSync(playerFile))[discordId];
     } catch(e) {
         return new Map();
     }
@@ -205,6 +211,15 @@ module.exports = {
 				}
 			}
 			return leader;
+		}
+	}, 
+	calculatePlayerStats: function(matchType, discordUser){
+		if(MATCH[matchType] != undefined || matchType === ""){
+			matchType = matchType.toLowerCase();
+			fetchUpdatedPlayerData(getPlayerMap());
+			var player = getPlayer(discordUser);
+			console.log("Retreaved" +player.pubgName+"'s stats");
+			return player;
 		}
 	}
 };
