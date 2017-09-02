@@ -78,11 +78,6 @@ bot.on("message", (message, channel) => {
 			bot.channels.get(channelId).send(outputMessage);
 			}
 	}
-	else if(message.content.startsWith("!stats ")){
-		var matchType = message.content.substring(7, message.content.length);
-		matchType = matchType.toUpperCase();
-		var leader = server.calculateLeaderboard(matchType);
-	}
 });
 
 var readChannelFile = function() {
