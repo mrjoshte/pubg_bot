@@ -11,7 +11,8 @@ const {
 } = require('pubg-api-redis');
 const playerFile = "../storage/players.json";
 const fs = require('fs');
-var pubgTrackerAPIKey = '21c941ec-f966-4919-ad40-7976405ca06b';
+var auth = require('../../auth.json');
+var pubgTrackerAPIKey = auth.apiKey;
 var bot = require('./bot.js');
 
 // If no Redis configuration it wont be cached
@@ -111,7 +112,7 @@ var fetchUpdatedPlayerData = function(savedplayerMap) {
 };
 
 var initLeader = function(){
-	return {wins:{num:0, id:0}, kills:{num:0, id:0}, damage:{num:0, id:0}};;
+	return {wins:{num:0, id:[]}, kills:{num:0, id:0}, damage:{num:0, id:0}};;
 }
 
 var writeUpdatedplayerMapToFile = function(playerMap) {
@@ -179,11 +180,20 @@ module.exports = {
 			fetchUpdatedPlayerData(getPlayerMap());
 			var players = getPlayerMap();
 			var leader = initLeader();
+			var count = 0;
 			for(id in players){
 				var player = players[id];
 				if(player.wins[matchType] > leader.wins.num){
 					leader.wins.num = player.wins[matchType];
-					leader.wins.id = player.discordName;
+					leader.wins.id = [];
+					count = 0;
+					leader.wins.id[count] = player.discordName;
+					count++;
+				}
+				else if(player.wins[matchType] == leader.wins.num){
+					leader.wins.num = player.wins[matchType];
+					leader.wins.id[count] = player.discordName;
+					count++;
 				}
 				if(player.kills[matchType] > leader.kills.num){
 					leader.kills.num = player.kills[matchType];

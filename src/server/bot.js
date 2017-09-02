@@ -47,11 +47,41 @@ bot.on("message", (message, channel) => {
 			if(leader != undefined){
 			var channelId = readChannelFile();
 			matchType = matchType.toLowerCase();
-			bot.channels.get(channelId).send("The current standings for "+matchType+" matches are..\n"+
-				'<@' + leader.wins.id + '> ' + ' with ' + leader.wins.num + ' win(s),\n'+
-				'<@' + leader.kills.id + '> ' + ' with ' + leader.kills.num + ' kills, and\n'+
-				'<@' + leader.damage.id + '> ' + ' with ' + leader.damage.num + ' damage.\n');
+			var outputMessage = "The current standings for "+matchType+" matches are..\n";
+				for(var i =0; i < leader.wins.id.length; i++){
+					if(i == 0){
+						outputMessage += ' <@' + leader.wins.id[i] + '>';
+					}
+					else{
+						if(leader.wins.id.length > 2){
+							outputMessage += ', ';
+						}
+						if(i == leader.wins.id.length-1){
+							outputMessage+='and ';
+						}
+						outputMessage+='<@' + leader.wins.id[i] + '>';
+					}
+				}
+				if(i > 1){
+					outputMessage += ' tied with ' + leader.wins.num + ' win(s),\n';
+				}
+				else{
+					if(leader.wins.num == 1){
+					outputMessage += ' with ' + leader.wins.num + ' win,\n';
+					}
+					else{
+						outputMessage += ' with ' + leader.wins.num + ' win,\n';
+					}
+				}
+				outputMessage +='<@' + leader.kills.id + '> ' + ' with ' + leader.kills.num + ' kills, and\n'+
+				'<@' + leader.damage.id + '> ' + ' with ' + leader.damage.num + ' damage.\n';
+			bot.channels.get(channelId).send(outputMessage);
 			}
+	}
+	else if(message.content.startsWith("!stats ")){
+		var matchType = message.content.substring(7, message.content.length);
+		matchType = matchType.toUpperCase();
+		var leader = server.calculateLeaderboard(matchType);
 	}
 });
 
