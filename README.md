@@ -10,6 +10,5 @@ and https://github.com/javilobo8/pubg-api-redis in order to communicate with the
 Update for the future
 
 - Update the win posting if players won a match together
-- Change leaderboard to show ties 
-- add !stats {match type} command for user's personal stats
 - autopost updated leaderboard changes as they happen
+- add !disgrace @player and list out all of their undesireable stats
