@@ -12,4 +12,4 @@ Update for the future
 - Adding in more stats for !leaderboard and !stats
 - Update the win posting if players won a match together
 - autopost updated leaderboard changes as they happen
-- add !disgrace @player and list out all of their undesireable stats
+- add !shame @player and list out all of their undesireable stats like loses, team kills, ect..
