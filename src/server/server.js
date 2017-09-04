@@ -1,7 +1,12 @@
 /**
- * Created by mrjoshte on 8/31/2017
+ * Created by mrjoshte and eswan95 on 8/31/2017
  */
+ 
 //Link dependencies
+var fileUtil = require('./fileUtil.js');
+var bot = require('./bot.js');
+var pubgTrackerAPIKey = fileUtil.readApiKey();
+
 const {
     PubgAPI,
     PubgAPIErrors,
@@ -9,38 +14,18 @@ const {
     SEASON,
     MATCH
 } = require('pubg-api-redis');
-const playerFile = "../storage/players.json";
-const gifsFile = "../storage/winGifs.json";
-const fs = require('fs');
-var auth = require('../../auth.json');
-var pubgTrackerAPIKey = auth.apiKey;
-var bot = require('./bot.js');
 
 // If no Redis configuration it wont be cached
 const api = new PubgAPI({
     apikey: pubgTrackerAPIKey,
-    /*redisConfig: {
-      host: '127.0.0.1',
-      port: 6379,
-      expiration: 300, // Optional - defaults to 300.
-    },*/
 });
 
-var getPlayerMap = function() {
-	try {
-        return JSON.parse(fs.readFileSync(playerFile));
-    } catch(e) {
-        return new Map();
-    }
-};
-var getPlayer = function(discordId){
-	try {
-		return JSON.parse(fs.readFileSync(playerFile))[discordId];
-    } catch(e) {
-        return new Map();
-    }
+// Send a chicken dinner message to discord
+var sendWinToDiscord = function(winner) {
+    bot.chickenDinner(winner);
 };
 
+// Collect data from the pubg api
 var getPlayerDataFromAPI = function(player){
 	api.getProfileByNickname(player.pubgName)
             .then((profile) => {
@@ -114,63 +99,38 @@ var getPlayerDataFromAPI = function(player){
                 });
 				
 				// Get the list of players again since this is a async api call
-                savedplayerMap = getPlayerMap();
+                savedplayerMap = fileUtil.readPlayerMap();
                 if (player.init) {
 					player.init = 0;
                     savedplayerMap[player.discordName] = player;
-					writeUpdatedplayerMapToFile(savedplayerMap);
+					fileUtil.writePlayers(savedplayerMap);
                     bot.newPlayerAdded(player.pubgName);
 				}
 				else {
-					//for (var i = 0; i < savedplayerMap.length; i++) {
-						var tempPlayer = savedplayerMap[player.discordName];
-                        //if (savedplayerMap[i].discordName === player.discordName) {
-							if(JSON.stringify(tempPlayer) !== JSON.stringify(player)){
-								savedplayerMap[player.discordName] = player;
-								console.log("Updating "+player.pubgName+"'s");
-								writeUpdatedplayerMapToFile(savedplayerMap);
-							}
-                       // }
-                   // }
+					var tempPlayer = savedplayerMap[player.discordName];
+					if(JSON.stringify(tempPlayer) !== JSON.stringify(player)){
+						savedplayerMap[player.discordName] = player;
+						console.log("Updating "+player.pubgName+"'s");
+						fileUtil.writePlayers(savedplayerMap);
+					}
                 }
             });
 }
 
+// This will iterate through all the players and get their pubg data
 var fetchUpdatedPlayerData = function(savedplayerMap) {
-    //This will iterate through all the players
     debugger;
 
-	if(savedplayerMap === {})
-		return;
-	//console.log(savedplayerMap);
 	for(var id in savedplayerMap) {
-		//console.log('Player');
 		var player = savedplayerMap[id];
-		//console.log(player);
 		getPlayerDataFromAPI(player);
-    //for (var i = 0; i < savedplayerMap.length; i++) {
-        //This will fetch the player from the pubg api
-        //var player = savedplayerMap[i];
-        
     }
 };
 
+// Create a blank slate player to compare against
 var initLeader = function(){
 	return {wins:{num:-1, id:[]}, kills:{num:-1, id:0}, damagePg:{num:-1, id:0}};;
 }
-
-var writeUpdatedplayerMapToFile = function(playerMap) {
-	try {
-		fs.writeFile(playerFile, JSON.stringify(playerMap));
-	}
-	catch(e) {
-		console.log("Error writing to player.json");
-	}
-};
-
-var sendWinToDiscord = function(winner) {
-    bot.chickenDinner(winner);
-};
 
 var initPlayer = function(discordName, pubgName){
 	var player = new Object();
@@ -201,7 +161,7 @@ var initPlayer = function(discordName, pubgName){
 module.exports = {
     createNewPlayer: function(discordName, pubgName) {
         //double check that the name of this user isn't in the map already
-        var playerMap = getPlayerMap();
+        var playerMap = fileUtil.readPlayerMap();
 		
 		var newPlayer = false;
 		if(playerMap[discordName] == null)
@@ -223,14 +183,14 @@ module.exports = {
         }
     },
     fetchData: function() {
-        fetchUpdatedPlayerData(getPlayerMap());
+        fetchUpdatedPlayerData(fileUtil.readPlayerMap());
     },
 	calculateLeaderboard: function(matchType){
 		if(MATCH[matchType] != undefined){
 			matchType = matchType.toLowerCase();
-			console.log("calculating leaderboard");
-			fetchUpdatedPlayerData(getPlayerMap());
-			var players = getPlayerMap();
+			console.log("Calculating leaderboard");
+			fetchUpdatedPlayerData(fileUtil.readPlayerMap());
+			var players = fileUtil.readPlayerMap();
 			var leader = initLeader();
 			var count = 0;
 			for(id in players){
@@ -259,22 +219,16 @@ module.exports = {
 			return leader;
 		}
 	}, 
-	calculatePlayerStats: function(matchType, discordUser){
-		if(MATCH[matchType] != undefined || matchType === ""){
-			matchType = matchType.toLowerCase();
-			fetchUpdatedPlayerData(getPlayerMap());
-			var player = getPlayer(discordUser);
-			console.log("Retreaved" +player.pubgName+"'s stats");
+	retrieveUpdatedPlayer: function(discordUser){
+		fetchUpdatedPlayerData(fileUtil.readPlayerMap());
+		var player = fileUtil.readPlayer(discordUser);
+		if(player != null){			
+			console.log("Retrieved " + player.pubgName + "'s stats");
 			return player;
 		}
-	},
-	getKhaledGif: function(){
-		try {
-			var fileList = JSON.parse(fs.readFileSync(gifsFile));
-			var randomNum = Math.floor(Math.random() * fileList.length-1);
-			return fileList[randomNum];
-		} catch(e) {
-			return "";
-		}
+		return undefined;
+	},	
+	validateMatchType: function(matchType){
+		return MATCH[matchType] != undefined;
 	}
 };
