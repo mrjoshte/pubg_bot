@@ -119,12 +119,19 @@ exports.newPlayerAdded = function(pubgName) {
 
 exports.chickenDinner = function(winner) {
     var channelId = readChannelFile();
-    bot.channels.get(channelId).send('Hey @everyone, <@' + winner.id + '>' + " just won a " + winner.match + " game!\n"
-	+"He got " + winner.kills + " kills and did " + winner.damage + " damage!");
+	var output = 'Hey @everyone, <@' + winner.id + '>' + " just won a " + winner.match + " game!\n"
+	+"He got " + winner.kills + " kills and did " + winner.damage + " damage!";
+	//Read gif file here
+	var gifLink = server.getKhaledGif();
+	if(gifLink != ""){
+		output += "\n" + gifLink;
+	}
+    bot.channels.get(channelId).send(output);
+	
 };
 
 setInterval(
     function() {
-        console.log("Starting fetch.")
+        console.log("Fetching...")
         server.fetchData();
-    }, 100000);
+    }, 60000);

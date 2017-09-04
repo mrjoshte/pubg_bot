@@ -1,2 +1,2 @@
 cd src/server/
-node bot.js
+node --no-deprecation bot.js

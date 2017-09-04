@@ -10,6 +10,7 @@ const {
     MATCH
 } = require('pubg-api-redis');
 const playerFile = "../storage/players.json";
+const gifsFile = "../storage/winGifs.json";
 const fs = require('fs');
 var auth = require('../../auth.json');
 var pubgTrackerAPIKey = auth.apiKey;
@@ -54,6 +55,7 @@ var getPlayerDataFromAPI = function(player){
 						var wins = parseInt(stats.performance.wins);
 						var kills = parseInt(stats.combat.kills);
 						var damageDealt = parseInt(stats.support.damageDealt);
+						var kd = parseInt(stats.support.damageDealt);
 					}catch(e){
 						var wins = 0;
 						var kills = 0;
@@ -90,6 +92,7 @@ var getPlayerDataFromAPI = function(player){
                         //if (savedplayerMap[i].discordName === player.discordName) {
 							if(JSON.stringify(tempPlayer) !== JSON.stringify(player)){
 								savedplayerMap[player.discordName] = player;
+								console.log("Updating "+player.pubgName+"'s");
 								writeUpdatedplayerMapToFile(savedplayerMap);
 							}
                        // }
@@ -220,6 +223,14 @@ module.exports = {
 			var player = getPlayer(discordUser);
 			console.log("Retreaved" +player.pubgName+"'s stats");
 			return player;
+		}
+	},
+	getKhaledGif: function(){
+		var randomNum = Math.floor(Math.random() * 9);
+		try {
+			return JSON.parse(fs.readFileSync(gifsFile))[randomNum];
+		} catch(e) {
+			return "";
 		}
 	}
 };
