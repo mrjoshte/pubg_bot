@@ -55,7 +55,7 @@ bot.on("message", (message, channel) => {
 				var outputMessage = "The current standings for "+matchType+" matches are..\n";
 					for(var i =0; i < leader.wins.id.length; i++){
 						if(i == 0){
-							outputMessage += ' <@' + leader.wins.id[i] + '>';
+							outputMessage += '<@' + leader.wins.id[i] + '>';
 						}
 						else{
 							if(leader.wins.id.length > 2){
@@ -79,7 +79,7 @@ bot.on("message", (message, channel) => {
 						}
 					}
 					outputMessage +='<@' + leader.kills.id + '> ' + ' with ' + leader.kills.num + ' kills, and\n'+
-					'<@' + leader.damage.id + '> ' + ' with ' + leader.damage.num + ' damage.\n';
+					'<@' + leader.damagePg.id + '> ' + ' with ' + leader.damagePg.num + ' average damage.\n';
 				bot.channels.get(channelId).send(outputMessage);
 				}
 		}
@@ -94,12 +94,12 @@ bot.on("message", (message, channel) => {
 			else{
 				var outputMessage = '<@' + player.discordName + '> here are your current stats\n';
 				if(matchType === ""){
-					outputMessage += 'For solo you have ' +player.wins["solo"]+' wins, '+player.kills["solo"]+' kills, and '+player.damage["solo"]+' damage\n';
-					outputMessage += 'For duos you have ' +player.wins["duo"]+' wins, '+player.kills["duo"]+' kills, and '+player.damage["duo"]+' damage\n';
-					outputMessage += 'For squad you have ' +player.wins["squad"]+' wins, '+player.kills["squad"]+' kills, and '+player.damage["squad"]+' damage\n';
+					outputMessage += 'For solo you have ' +player["solo"].wins+' wins, '+player["solo"].kills+' kills, k/d of '+player["solo"].kd+', and average '+player["solo"].damagePg+' damage.\n';
+					outputMessage += 'For duos you have ' +player["duo"].wins+' wins, '+player["duo"].kills+' kills, k/d of '+player["duo"].kd+', and average '+player["duo"].damagePg+' damage.\n';
+					outputMessage += 'For squad you have ' +player["squad"].wins+' wins, '+player["squad"].kills+' kills, k/d of '+player["duo"].kd+', and average '+player["squad"].damagePg+' damage.\n';
 					}
 				else{
-					outputMessage += 'For ' + matchType+ ' you have ' +player.wins[matchType]+' wins, '+player.kills[matchType]+' kills, and '+player.damage[matchType]+' damage\n';
+					outputMessage += 'For ' + matchType+ ' you have ' +player[matchType].wins+' wins, '+player[matchType].kills+' kills, k/d of '+player[matchType].kd+', and average '+player[matchType].damagePg+' damage.\n';
 				}
 				bot.channels.get(channelId).send(outputMessage);
 			}
@@ -134,4 +134,4 @@ setInterval(
     function() {
         console.log("Fetching...")
         server.fetchData();
-    }, 60000);
+    }, 20000);

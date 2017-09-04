@@ -47,35 +47,70 @@ var getPlayerDataFromAPI = function(player){
                 const data = profile.content;
                 Object.keys(MATCH).forEach(function(match) {
                     var matchType = MATCH[match];
+					var stats;
 					try{
 						stats = profile.getStats({
 							region: REGION.NA,
 							match: matchType
 						});
-						var wins = parseInt(stats.performance.wins);
 						var kills = parseInt(stats.combat.kills);
+						var damagePg = parseInt(stats.perGame.damagePg);
+						var roundMostKills = parseInt(stats.combat.roundMostKills);
+						var suicides = parseInt(stats.combat.suicides);
+						var teamKills = parseInt(stats.combat.teamKills);
+						var headshots = parseInt(stats.combat.headshotKills);
+						
+						var wins = parseInt(stats.performance.wins);
+						var kd = parseFloat(stats.performance.killDeathRatio);
+						var topTonRatio = parseFloat(stats.performance.top10Ratio);
+						var winRatio = parseFloat(stats.performance.winRatio);
+						var losses = parseInt(stats.performance.losses);
+						
+						var longestKill = parseFloat(stats.distance.longestKill);
 						var damageDealt = parseInt(stats.support.damageDealt);
-						var kd = parseInt(stats.support.damageDealt);
+						
 					}catch(e){
-						var wins = 0;
 						var kills = 0;
+						var damagePg = 0;
+						var roundMostKills = 0;
+						var suicides = 0;
+						var teamKills = 0;
+						var headshots = 0;
+						
+						var wins = 0;
+						var kd = 0;
+						var topTonRatio = 0;
+						var winRatio = 0;
+						var losses = 0;
+						
+						var longestKill = 0;
 						var damageDealt = 0;
 					}
-                    //This is where we actually compare the saved vs pulled
+                    
 					
-                    if (!player.init && wins > player.wins[matchType]) {
+                    if (!player.init && wins > player[matchType].wins) {
                         //save the new data to send to the server
                         var winner = new Object();
                         winner.id = player.discordName;
                         winner.match = matchType;
-                        winner.kills = kills - player.kills[matchType];
-                        winner.damage = damageDealt - player.damage[matchType];
+                        winner.kills = kills - player[matchType].kills;
+                        winner.damage = damageDealt - player[matchType].damage;
                         sendWinToDiscord(winner);
                     }
                     //update the file
-                    player.wins[matchType] = wins;
-                    player.kills[matchType] = kills;
-                    player.damage[matchType] = damageDealt;
+                    player[matchType].kills = kills;
+					player[matchType].damagePg = damagePg;
+					player[matchType].roundMostKills = roundMostKills;
+                    player[matchType].suicides = suicides;
+                    player[matchType].teamKills = teamKills;
+                    player[matchType].headshots = headshots;
+                    player[matchType].wins = wins;
+                    player[matchType].kd = kd;
+                    player[matchType].topTonRatio = topTonRatio;
+                    player[matchType].winRatio = winRatio;
+                    player[matchType].losses = losses;
+                    player[matchType].longestKill = longestKill;
+                    player[matchType].damage = damageDealt;					
                 });
 				
 				// Get the list of players again since this is a async api call
@@ -121,7 +156,7 @@ var fetchUpdatedPlayerData = function(savedplayerMap) {
 };
 
 var initLeader = function(){
-	return {wins:{num:0, id:[]}, kills:{num:0, id:0}, damage:{num:0, id:0}};;
+	return {wins:{num:-1, id:[]}, kills:{num:-1, id:0}, damagePg:{num:-1, id:0}};;
 }
 
 var writeUpdatedplayerMapToFile = function(playerMap) {
@@ -137,6 +172,32 @@ var sendWinToDiscord = function(winner) {
     bot.chickenDinner(winner);
 };
 
+var initPlayer = function(discordName, pubgName){
+	var player = new Object();
+	player.pubgName = pubgName;
+	player.discordName = discordName;
+	Object.keys(MATCH).forEach(function(match) {
+		var matchType = MATCH[match];
+		player[matchType] = {
+			kills: 0,
+			damagePg: 0,
+			roundMostKills: 0,
+			suicides: 0,
+			teamKills: 0,
+			headshots: 0,
+			wins: 0,
+			kd: 0,
+			topTonRatio: 0,
+			winRatio: 0,
+			losses: 0,
+			longestKill: 0,
+			damage: 0,
+		}
+	});
+	player.init = 1;
+	return player;
+}
+
 module.exports = {
     createNewPlayer: function(discordName, pubgName) {
         //double check that the name of this user isn't in the map already
@@ -150,25 +211,7 @@ module.exports = {
             debugger;
             api.getProfileByNickname(pubgName)
                 .then((profile) => {
-                    var player = new Object();
-                    player.pubgName = pubgName;
-                    player.discordName = discordName;
-                    player.wins = {
-                        solo: 0,
-                        duo: 0,
-                        squad: 0
-                    };
-                    player.kills = {
-                        solo: 0,
-                        duo: 0,
-                        squad: 0
-                    };
-                    player.damage = {
-                        solo: 0,
-                        duo: 0,
-                        squad: 0
-                    };
-					player.init = 1;
+                    var player = initPlayer(discordName, pubgName);
 					playerMap[discordName] = player;
                     getPlayerDataFromAPI(player);
                     return true;
@@ -192,25 +235,25 @@ module.exports = {
 			var count = 0;
 			for(id in players){
 				var player = players[id];
-				if(player.wins[matchType] > leader.wins.num){
-					leader.wins.num = player.wins[matchType];
+				if(player[matchType].wins > leader.wins.num){
+					leader.wins.num = player[matchType].wins;
 					leader.wins.id = [];
 					count = 0;
 					leader.wins.id[count] = player.discordName;
 					count++;
 				}
-				else if(player.wins[matchType] == leader.wins.num){
-					leader.wins.num = player.wins[matchType];
+				else if(player[matchType].wins == leader.wins.num){
+					leader.wins.num = player[matchType].wins;
 					leader.wins.id[count] = player.discordName;
 					count++;
 				}
-				if(player.kills[matchType] > leader.kills.num){
-					leader.kills.num = player.kills[matchType];
+				if(player[matchType].kills > leader.kills.num){
+					leader.kills.num = player[matchType].kills;
 					leader.kills.id = player.discordName;
 				}
-				if(player.damage[matchType] > leader.damage.num){
-					leader.damage.num = player.damage[matchType];
-					leader.damage.id = player.discordName;
+				if(player[matchType].damagePg > leader.damagePg.num){
+					leader.damagePg.num = player[matchType].damagePg;
+					leader.damagePg.id = player.discordName;
 				}
 			}
 			return leader;
@@ -226,9 +269,10 @@ module.exports = {
 		}
 	},
 	getKhaledGif: function(){
-		var randomNum = Math.floor(Math.random() * 9);
 		try {
-			return JSON.parse(fs.readFileSync(gifsFile))[randomNum];
+			var fileList = JSON.parse(fs.readFileSync(gifsFile));
+			var randomNum = Math.floor(Math.random() * fileList.length-1);
+			return fileList[randomNum];
 		} catch(e) {
 			return "";
 		}
