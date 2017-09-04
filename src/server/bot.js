@@ -44,7 +44,7 @@ bot.on("message", (message, channel) => {
 				bot.channels.get(channelId).send("Incorrect entry. Acceptable leaderboard commands are\n!leaderboard solo, !leaderboard duo, !leaderboard squad");
 			}
 			else {
-				var leader = server.calculateLeaderboard(matchType);
+				var leader = server.calculateLeaderboard(matchType.toUpperCase());
 				if (leader != undefined) {
 					var channelId = fileUtil.readChannel();
 					var outputMessage = "The current standings for " + matchType + " matches are..\n";
