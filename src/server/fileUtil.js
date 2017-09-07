@@ -45,9 +45,10 @@ module.exports = {
 
     // Get a DJ Khalid gif
     getKhaledGif: function() {
-        var randomNum = Math.floor(Math.random() * 9);
         try {
-            return JSON.parse(fs.readFileSync(gifsFile))[randomNum];
+			var gifs = JSON.parse(fs.readFileSync(gifsFile));
+			var randomNum = Math.floor(Math.random() * (gifs.length - 1));
+            return gifs[randomNum];
         } catch (e) {
 			console.log("Could not retrieve a DJ Khalid Gif");
             return "Could not retrieve a DJ Khalid Gif";
