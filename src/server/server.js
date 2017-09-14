@@ -20,11 +20,6 @@ const api = new PubgAPI({
     apikey: pubgTrackerAPIKey,
 });
 
-// Send a chicken dinner message to discord
-var sendWinToDiscord = function(winner) {
-    bot.chickenDinner(winner);
-};
-
 // Collect data from the pubg api
 var getPlayerDataFromAPI = function(player){
 	api.getProfileByNickname(player.pubgName)
@@ -38,6 +33,7 @@ var getPlayerDataFromAPI = function(player){
 							region: REGION.NA,
 							match: matchType
 						});
+		
 						var kills = parseInt(stats.combat.kills);
 						var damagePg = parseInt(stats.perGame.damagePg);
 						var roundMostKills = parseInt(stats.combat.roundMostKills);
@@ -47,7 +43,7 @@ var getPlayerDataFromAPI = function(player){
 						
 						var wins = parseInt(stats.performance.wins);
 						var kd = parseFloat(stats.performance.killDeathRatio);
-						var topTonRatio = parseFloat(stats.performance.top10Ratio);
+						var topTenRatio = parseFloat(stats.performance.top10Ratio);
 						var winRatio = parseFloat(stats.performance.winRatio);
 						var losses = parseInt(stats.performance.losses);
 						
@@ -64,7 +60,7 @@ var getPlayerDataFromAPI = function(player){
 						
 						var wins = 0;
 						var kd = 0;
-						var topTonRatio = 0;
+						var topTenRatio = 0;
 						var winRatio = 0;
 						var losses = 0;
 						
@@ -72,17 +68,17 @@ var getPlayerDataFromAPI = function(player){
 						var damageDealt = 0;
 					}
                     
-					
+					// Check if the player has any new wins
                     if (!player.init && wins > player[matchType].wins) {
-                        //save the new data to send to the server
                         var winner = new Object();
                         winner.id = player.discordName;
                         winner.match = matchType;
                         winner.kills = kills - player[matchType].kills;
                         winner.damage = damageDealt - player[matchType].damage;
-                        sendWinToDiscord(winner);
+                        bot.chickenDinner(winner);
                     }
-                    //update the file
+					
+                    // Update the player
                     player[matchType].kills = kills;
 					player[matchType].damagePg = damagePg;
 					player[matchType].roundMostKills = roundMostKills;
@@ -91,7 +87,7 @@ var getPlayerDataFromAPI = function(player){
                     player[matchType].headshots = headshots;
                     player[matchType].wins = wins;
                     player[matchType].kd = kd;
-                    player[matchType].topTonRatio = topTonRatio;
+                    player[matchType].topTenRatio = topTenRatio;
                     player[matchType].winRatio = winRatio;
                     player[matchType].losses = losses;
                     player[matchType].longestKill = longestKill;
@@ -100,17 +96,20 @@ var getPlayerDataFromAPI = function(player){
 				
 				// Get the list of players again since this is a async api call
                 savedplayerMap = fileUtil.readPlayerMap();
-                if (player.init) {
+                
+				// If this is a new player, simply save it to the player.json file
+				if (player.init) {
 					player.init = 0;
                     savedplayerMap[player.discordName] = player;
 					fileUtil.writePlayers(savedplayerMap);
                     bot.newPlayerAdded(player.pubgName);
 				}
 				else {
+					// Don't update the players.json file unless there is a difference for the player
 					var tempPlayer = savedplayerMap[player.discordName];
 					if(JSON.stringify(tempPlayer) !== JSON.stringify(player)){
 						savedplayerMap[player.discordName] = player;
-						console.log("Updating "+player.pubgName+"'s");
+						console.log("Updating " + player.pubgName + "'s");
 						fileUtil.writePlayers(savedplayerMap);
 					}
                 }
@@ -127,15 +126,17 @@ var fetchUpdatedPlayerData = function(savedplayerMap) {
     }
 };
 
-// Create a blank slate player to compare against
+// Create a blank object used to help calculate the leaderboard
 var initLeader = function(){
 	return {wins:{num:-1, id:[]}, kills:{num:-1, id:0}, damagePg:{num:-1, id:0}};;
 }
 
+// Create a new player object
 var initPlayer = function(discordName, pubgName){
 	var player = new Object();
 	player.pubgName = pubgName;
 	player.discordName = discordName;
+	player.init = 1;
 	Object.keys(MATCH).forEach(function(match) {
 		var matchType = MATCH[match];
 		player[matchType] = {
@@ -147,27 +148,24 @@ var initPlayer = function(discordName, pubgName){
 			headshots: 0,
 			wins: 0,
 			kd: 0,
-			topTonRatio: 0,
+			topTenRatio: 0,
 			winRatio: 0,
 			losses: 0,
 			longestKill: 0,
-			damage: 0,
+			damage: 0
 		}
 	});
-	player.init = 1;
 	return player;
 }
 
 module.exports = {
-    createNewPlayer: function(discordName, pubgName) {
-        //double check that the name of this user isn't in the map already
+    
+	// Function to add a new player to the system
+	createNewPlayer: function(discordName, pubgName) {
         var playerMap = fileUtil.readPlayerMap();
 		
-		var newPlayer = false;
-		if(playerMap[discordName] == null)
-			newPlayer = true;
-
-        if (newPlayer) {
+		// Make sure the player doesn;t already exist
+		if(playerMap[discordName] == null) {
             debugger;
             api.getProfileByNickname(pubgName)
                 .then((profile) => {
@@ -176,18 +174,25 @@ module.exports = {
                     getPlayerDataFromAPI(player);
                     return true;
                 }, function(error) {
-                    return false;
+					return false;
                 });
         } else {
-            return false;
+            console.log("Player already exists.");
+			return false;
         }
     },
+	
+	// Function to update player data
     fetchData: function() {
         fetchUpdatedPlayerData(fileUtil.readPlayerMap());
     },
+	
+	// Function to calculate the leaderboard for a specific match type
 	calculateLeaderboard: function(matchType){
-		if(MATCH[matchType] != undefined){
-			matchType = matchType.toLowerCase();
+		var modifiedMatchType = matchType.replace("-", "");
+		console.log(MATCH[modifiedMatchType]);
+		if(MATCH[modifiedMatchType] != undefined){
+			modifiedMatchType = modifiedMatchType.toLowerCase();
 			console.log("Calculating leaderboard");
 			fetchUpdatedPlayerData(fileUtil.readPlayerMap());
 			var players = fileUtil.readPlayerMap();
@@ -195,30 +200,32 @@ module.exports = {
 			var count = 0;
 			for(id in players){
 				var player = players[id];
-				if(player[matchType].wins > leader.wins.num){
-					leader.wins.num = player[matchType].wins;
+				if(player[modifiedMatchType].wins > leader.wins.num){
+					leader.wins.num = player[modifiedMatchType].wins;
 					leader.wins.id = [];
 					count = 0;
 					leader.wins.id[count] = player.discordName;
 					count++;
 				}
-				else if(player[matchType].wins == leader.wins.num){
-					leader.wins.num = player[matchType].wins;
+				else if(player[modifiedMatchType].wins == leader.wins.num){
+					leader.wins.num = player[modifiedMatchType].wins;
 					leader.wins.id[count] = player.discordName;
 					count++;
 				}
-				if(player[matchType].kills > leader.kills.num){
-					leader.kills.num = player[matchType].kills;
+				if(player[modifiedMatchType].kills > leader.kills.num){
+					leader.kills.num = player[modifiedMatchType].kills;
 					leader.kills.id = player.discordName;
 				}
-				if(player[matchType].damagePg > leader.damagePg.num){
-					leader.damagePg.num = player[matchType].damagePg;
+				if(player[modifiedMatchType].damagePg > leader.damagePg.num){
+					leader.damagePg.num = player[modifiedMatchType].damagePg;
 					leader.damagePg.id = player.discordName;
 				}
 			}
 			return leader;
 		}
 	}, 
+	
+	// Function to update all players and return a specific player
 	retrieveUpdatedPlayer: function(discordUser){
 		fetchUpdatedPlayerData(fileUtil.readPlayerMap());
 		var player = fileUtil.readPlayer(discordUser);
@@ -228,7 +235,28 @@ module.exports = {
 		}
 		return undefined;
 	},	
+	
+	// Validate the matchType matches a value in the contants file
 	validateMatchType: function(matchType){
-		return MATCH[matchType] != undefined;
+		var modifiedMatchType = matchType.replace("-", "");
+		return MATCH[modifiedMatchType] != undefined;
+	},
+	
+	// Get the matchtypes
+	retrieveMatchTypes: function(){
+		var matchTypes = new String();
+		for(type in MATCH){
+			console.log(MATCH[type]);
+			if(matchTypes.length == 0) {
+				matchTypes = MATCH[type];
+			}
+			else {
+				// Check we didn;t already add the match type
+				if(!matchTypes.includes(MATCH[type])) {
+					matchTypes += ", " + MATCH[type];
+				}
+			}
+		}
+		return matchTypes;
 	}
 };

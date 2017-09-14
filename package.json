@@ -4,8 +4,8 @@
   "description": "This is a discord bot in order to get player statistics for playerunknown's battlegrounds",
   "main": "bot.js",
   "dependencies": {
-    "pubg-api-redis": "^3.4.0",
-    "discord.js": "^11.1.0"
+    "discord.js": "^11.1.0",
+    "pubg-api-redis": "^3.6.0"
   },
   "devDependencies": {},
   "scripts": {

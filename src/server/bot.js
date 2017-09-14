@@ -37,11 +37,12 @@ bot.on("message", (message, channel) => {
         }
 
 		// Get leaderboars stats for a matchtype
-        else if (message.content.startsWith("!leaderboard ")) {
+        if (message.content.startsWith("!leaderboard ")) {
             var matchType = message.content.substring(13, message.content.length);
 			var isValidMatchType = server.validateMatchType(matchType.toUpperCase());
 			if (isValidMatchType == false) {
-				bot.channels.get(channelId).send("Incorrect entry. Acceptable leaderboard commands are\n!leaderboard solo, !leaderboard duo, !leaderboard squad");
+				bot.channels.get(channelId).send("Incorrect entry. You must enter !leaderboard <matchType>\n" + 
+				"Valid match types: " + server.retrieveMatchTypes());
 			}
 			else {
 				var leader = server.calculateLeaderboard(matchType.toUpperCase());
@@ -50,7 +51,7 @@ bot.on("message", (message, channel) => {
 					var outputMessage = "The current standings for " + matchType + " matches are..\n";
 					for (var i = 0; i < leader.wins.id.length; i++) {
 						if (i == 0) {
-							outputMessage += ' <@' + leader.wins.id[i] + '>';
+							outputMessage += '<@' + leader.wins.id[i] + '> ';
 						} 
 						else {
 							if (leader.wins.id.length > 2) {
@@ -81,7 +82,7 @@ bot.on("message", (message, channel) => {
         } 
 		
 		// Gets the player's stats for a match type
-		else if (message.content.startsWith("!stats")) {
+		if (message.content.startsWith("!stats")) {
             var matchType = message.content.substring(7, message.content.length).toLowerCase();
             var discordUser = message.author.id;
             var channelId = fileUtil.readChannel();
@@ -110,6 +111,16 @@ bot.on("message", (message, channel) => {
 				bot.channels.get(channelId).send(outputMessage);
             }
         }
+		
+		// Returns the commands this bot can do
+		if (message.content.startsWith("!help")) {
+			var helpMessage =
+			"!addme <pubg game name> - Add yourself to the system to get your stats\n" +
+			"!stats <match type> - Get your own stats for a match type. No match type will give you all your stats\n" +
+			"!leaderboard <match type> - Find out who the leader is for a match type. Match type required\n\n" +
+			"Match types: " + server.retrieveMatchTypes();
+			bot.channels.get(channelId).send(helpMessage);
+		}
     }
 });
 
@@ -129,9 +140,9 @@ exports.chickenDinner = function(winner) {
     bot.channels.get(channelId).send(output);
 };
 
-// Retrieve player stats every 20 seconds
+// Retrieve player stats every 1 min 40 seconds
 setInterval(
     function() {
-        console.log("Fetching...")
+        //console.log("Fetching...")
         server.fetchData();
-    }, 20000);
+    }, 10000);
