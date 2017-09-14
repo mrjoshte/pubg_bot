@@ -42,7 +42,7 @@ bot.on("message", (message, channel) => {
 			var isValidMatchType = server.validateMatchType(matchType.toUpperCase());
 			if (isValidMatchType == false) {
 				bot.channels.get(channelId).send("Incorrect entry. You must enter !leaderboard <matchType>\n" + 
-				"Valid match types: " + server.retrieveMatchTypes());
+				"Valid match types: " + server.retrieveMatchTypesList());
 			}
 			else {
 				var leader = server.calculateLeaderboard(matchType.toUpperCase());
@@ -76,7 +76,7 @@ bot.on("message", (message, channel) => {
 					}
 					outputMessage +='<@' + leader.kills.id + '> ' + ' with ' + leader.kills.num + ' kills, and\n'+
 					'<@' + leader.damagePg.id + '> ' + ' with ' + leader.damagePg.num + ' average damage.\n';
-				bot.channels.get(channelId).send(outputMessage);
+					bot.channels.get(channelId).send(outputMessage);
 				}
 			}
         } 
@@ -95,16 +95,20 @@ bot.on("message", (message, channel) => {
             } 
 			// Check player parameters
 			else if (matchType !== "" && isValidMatchType == false) {
-				bot.channels.get(channelId).send("Incorrect entry. Acceptable stats commands are\n!stats, !stats solo, !stats duo, !stats squad");
+				bot.channels.get(channelId).send("Incorrect entry. You must enter !stats <matchType>\n" + 
+				"Valid match types: " + server.retrieveMatchTypesList() + "\n" + 
+				"<matchType> is optional");
 			}
 			// Get the stats
 			else{
 				var outputMessage = '<@' + player.discordName + '> here are your current stats\n';
 				if(matchType === ""){
-					outputMessage += 'For solo you have ' +player["solo"].wins+' wins, '+player["solo"].kills+' kills, k/d of '+player["solo"].kd+', and average '+player["solo"].damagePg+' damage.\n';
-					outputMessage += 'For duos you have ' +player["duo"].wins+' wins, '+player["duo"].kills+' kills, k/d of '+player["duo"].kd+', and average '+player["duo"].damagePg+' damage.\n';
-					outputMessage += 'For squad you have ' +player["squad"].wins+' wins, '+player["squad"].kills+' kills, k/d of '+player["duo"].kd+', and average '+player["squad"].damagePg+' damage.\n';
+					var matchTypes = server.retrieveMatchTypes();
+					for(type in matchTypes){
+						if(type !== "DEFAULT")
+							outputMessage += "For " + matchTypes[type] + " you have " +player[matchTypes[type]].wins+" wins, "+player[matchTypes[type]].kills+" kills, k/d of "+player[matchTypes[type]].kd+", and average "+player[matchTypes[type]].damagePg+" damage.\n";
 					}
+				}
 				else{
 					outputMessage += 'For ' + matchType+ ' you have ' +player[matchType].wins+' wins, '+player[matchType].kills+' kills, k/d of '+player[matchType].kd+', and average '+player[matchType].damagePg+' damage.\n';
 				}
@@ -118,11 +122,16 @@ bot.on("message", (message, channel) => {
 			"!addme <pubg game name> - Add yourself to the system to get your stats\n" +
 			"!stats <match type> - Get your own stats for a match type. No match type will give you all your stats\n" +
 			"!leaderboard <match type> - Find out who the leader is for a match type. Match type required\n\n" +
-			"Match types: " + server.retrieveMatchTypes();
+			"Match types: " + server.retrieveMatchTypesList();
 			bot.channels.get(channelId).send(helpMessage);
 		}
     }
 });
+
+exports.sendMessage = function(message) {
+    var channelId = fileUtil.readChannel();
+	bot.channels.get(channelId).send(message);
+};
 
 exports.newPlayerAdded = function(pubgName) {
     var channelId = fileUtil.readChannel();

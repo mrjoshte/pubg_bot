@@ -178,9 +178,9 @@ module.exports = {
     // Function to add a new player to the system
     createNewPlayer: function (discordName, pubgName) {
         let playerMap = fileUtil.readPlayerMap();
-
+		debugger;
         // Make sure the player doesn;t already exist
-        if (playerMap[discordName] === null) {
+        if (playerMap[discordName] === undefined) {
             debugger;
             api.getProfileByNickname(pubgName)
                 .then(function () {
@@ -189,11 +189,10 @@ module.exports = {
                     getPlayerDataFromAPI(player);
                     return true;
                 }, function () {
-                    return false;
+					bot.sendMessage("Invalid player name.");
                 });
         } else {
-            console.log("Player already exists.");
-            return false;
+			bot.sendMessage("Your discord account already has a pubg player in the system: " + playerMap[discordName].pubgName);
         }
     },
 
@@ -203,44 +202,42 @@ module.exports = {
     },
 
     // Function to calculate the leaderboard for a specific match type
-    calculateLeaderboard: function (matchType) {
-        let modifiedMatchType = matchType.replace("-", "");
-        console.log(MATCH[modifiedMatchType]);
-        if (MATCH[modifiedMatchType] !== undefined) {
-            modifiedMatchType = modifiedMatchType.toLowerCase();
-            console.log("Calculating leaderboard");
-            fetchUpdatedPlayerData(fileUtil.readPlayerMap());
-            let players = fileUtil.readPlayerMap();
-            let leader = initLeader();
-            let count = 0;
-            for (let id in players) {
-                if (players.hasOwnProperty(id)) {
-                    let player = players[id];
-                    if (player[modifiedMatchType].wins > leader.wins.num) {
-                        leader.wins.num = player[modifiedMatchType].wins;
-                        leader.wins.id = [];
-                        count = 0;
-                        leader.wins.id[count] = player.discordName;
-                        count++;
-                    }
-                    else if (player[modifiedMatchType].wins === leader.wins.num) {
-                        leader.wins.num = player[modifiedMatchType].wins;
-                        leader.wins.id[count] = player.discordName;
-                        count++;
-                    }
-                    if (player[modifiedMatchType].kills > leader.kills.num) {
-                        leader.kills.num = player[modifiedMatchType].kills;
-                        leader.kills.id = player.discordName;
-                    }
-                    if (player[modifiedMatchType].damagePg > leader.damagePg.num) {
-                        leader.damagePg.num = player[modifiedMatchType].damagePg;
-                        leader.damagePg.id = player.discordName;
-                    }
-                }
-            }
-            return leader;
-        }
-    },
+	calculateLeaderboard: function(matchType){
+		let modifiedMatchType = matchType.replace("-", "");
+		matchType = matchType.toLowerCase();
+		if(MATCH[modifiedMatchType] != undefined){
+			modifiedMatchType = modifiedMatchType.toLowerCase();
+			console.log("Calculating leaderboard");
+			fetchUpdatedPlayerData(fileUtil.readPlayerMap());
+			let players = fileUtil.readPlayerMap();
+			let leader = initLeader();
+			let count = 0;
+			for(id in players){
+				let player = players[id];
+				if(player[matchType].wins > leader.wins.num){
+					leader.wins.num = player[matchType].wins;
+					leader.wins.id = [];
+					count = 0;
+					leader.wins.id[count] = player.discordName;
+					count++;
+				}
+				else if(player[matchType].wins == leader.wins.num){
+					leader.wins.num = player[matchType].wins;
+					leader.wins.id[count] = player.discordName;
+					count++;
+				}
+				if(player[matchType].kills > leader.kills.num){
+					leader.kills.num = player[matchType].kills;
+					leader.kills.id = player.discordName;
+				}
+				if(player[matchType].damagePg > leader.damagePg.num){
+					leader.damagePg.num = player[matchType].damagePg;
+					leader.damagePg.id = player.discordName;
+				}
+			}
+			return leader;
+		}
+	}, 
 
     // Function to update all players and return a specific player
     retrieveUpdatedPlayer: function (discordUser) {
@@ -264,15 +261,11 @@ module.exports = {
         let matchTypes = {};
         for (let type in MATCH) {
             if (MATCH.hasOwnProperty(type)) {
-                console.log(MATCH[type]);
                 if (matchTypes.length === 0) {
                     matchTypes = MATCH[type];
                 }
-                else {
-                    // Check we didn't already add the match type
-                    if (!matchTypes.includes(MATCH[type])) {
-                        matchTypes += ", " + MATCH[type];
-                    }
+                else if (type !== "DEFAULT") {
+                    matchTypes += ", " + MATCH[type];
                 }
             }
         }
