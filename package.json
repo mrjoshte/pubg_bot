@@ -9,8 +9,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "testingBot.sh",
+    "start": "startbot.sh"
   },
   "repository": {
     "type": "git",
