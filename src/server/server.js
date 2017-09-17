@@ -126,18 +126,19 @@ const getPlayerDataFromAPI = function (player) {
             });
     }
     catch (e) {
+		console.log("Error trying to call pubg api to get player's stats.");
     }
 };
 
-// This will iterate through all the players and get their pubg data
+// This will iterate through all the players and get their newest pubg data
 const fetchUpdatedPlayerData = function (savedplayerMap) {
     debugger;
 
     for (let id in savedplayerMap) {
         if (savedplayerMap.hasOwnProperty(id)) {
-            let player = savedplayerMap[id];
-            getPlayerDataFromAPI(player);
-        }
+			let player = savedplayerMap[id];
+			getPlayerDataFromAPI(player);
+		}
     }
 };
 
@@ -177,22 +178,35 @@ module.exports = {
 
     // Function to add a new player to the system
     createNewPlayer: function (discordName, pubgName) {
-        let playerMap = fileUtil.readPlayerMap();
+        console.log("Adding user. Discordname: " + discordName + ", pubgname: " + pubgName);
+		let playerMap = fileUtil.readPlayerMap();
 		debugger;
         // Make sure the player doesn;t already exist
         if (playerMap[discordName] === undefined) {
             debugger;
-            api.getProfileByNickname(pubgName)
-                .then(function () {
-                    let player = initPlayer(discordName, pubgName);
-                    playerMap[discordName] = player;
-                    getPlayerDataFromAPI(player);
-                    return true;
-                }, function () {
-					bot.sendMessage("Invalid player name.");
-                });
+			try {
+				api.getProfileByNickname(pubgName)
+					.then(function () {
+						let player = initPlayer(discordName, pubgName);
+						playerMap[discordName] = player;
+						getPlayerDataFromAPI(player);
+						console.log("Successfully added player: " + pubgName);
+						return true;
+					}, function (error) {
+						console.log("Player name does not exist in the pubg api.");
+						bot.sendMessage("Player name does not exist in the pubg api.");
+						return false;
+					});
+			}
+			catch (e) {
+				console.log("Error retrieving initial player data from the pubg api.");
+				bot.sendMessage("Error retrieving initial player data from the pubg api.");
+				return false;
+			}
         } else {
+			console.log("Account: " + discordName + " already has a pubg player in the system: " + playerMap[discordName].pubgName);
 			bot.sendMessage("Your discord account already has a pubg player in the system: " + playerMap[discordName].pubgName);
+			return false;
         }
     },
 
@@ -258,7 +272,7 @@ module.exports = {
 
     // Get the matchTypesList
     retrieveMatchTypesList: function () {
-        let matchTypes = {};
+        let matchTypes = new String();
         for (let type in MATCH) {
             if (MATCH.hasOwnProperty(type)) {
                 if (matchTypes.length === 0) {

@@ -46,7 +46,7 @@ bot.on("message", (message, channel) => {
 			}
 			else {
 				var leader = server.calculateLeaderboard(matchType.toUpperCase());
-				if (leader != undefined) {
+				if (leader !== undefined) {
 					var channelId = fileUtil.readChannel();
 					var outputMessage = "The current standings for " + matchType + " matches are..\n";
 					for (var i = 0; i < leader.wins.id.length; i++) {
@@ -89,13 +89,14 @@ bot.on("message", (message, channel) => {
             var player = server.retrieveUpdatedPlayer(discordUser);
 			var isValidMatchType = server.validateMatchType(matchType.toUpperCase());
             // Check if player exists to get their stats
-			if (player == undefined) {
+			if (player === undefined) {
                 bot.channels.get(channelId).send("You do not exist in the system. Please enter '!addme <pubg game name>' to get your stats.");
 				return;
             } 
 			// Check player parameters
 			else if (matchType !== "" && isValidMatchType == false) {
-				bot.channels.get(channelId).send("Incorrect entry. You must enter !stats <matchType>\n" + 
+				bot.channels.get(channelId).send("Incorrect entry. \n\n" + 
+				"You must enter !stats <matchType>\n" + 
 				"Valid match types: " + server.retrieveMatchTypesList() + "\n" + 
 				"<matchType> is optional");
 			}
@@ -106,7 +107,7 @@ bot.on("message", (message, channel) => {
 					var matchTypes = server.retrieveMatchTypes();
 					for(type in matchTypes){
 						if(type !== "DEFAULT")
-							outputMessage += "For " + matchTypes[type] + " you have " +player[matchTypes[type]].wins+" wins, "+player[matchTypes[type]].kills+" kills, k/d of "+player[matchTypes[type]].kd+", and average "+player[matchTypes[type]].damagePg+" damage.\n";
+							outputMessage += "For " + matchTypes[type] + " you have " +player[matchTypes[type]].wins+" wins, "+player[matchTypes[type]].kills+" kills, k/d of "+player[matchTypes[type]].kd+", and an average "+player[matchTypes[type]].damagePg+" damage.\n";
 					}
 				}
 				else{
@@ -118,12 +119,13 @@ bot.on("message", (message, channel) => {
 		
 		// Returns the commands this bot can do
 		if (message.content.startsWith("!help")) {
-			var helpMessage =
+			var helpMessage = "Current bot commands: \n\n" +
 			"!addme <pubg game name> - Add yourself to the system to get your stats\n" +
 			"!stats <match type> - Get your own stats for a match type. No match type will give you all your stats\n" +
 			"!leaderboard <match type> - Find out who the leader is for a match type. Match type required\n\n" +
 			"Match types: " + server.retrieveMatchTypesList();
 			bot.channels.get(channelId).send(helpMessage);
+			return;
 		}
     }
 });
@@ -154,4 +156,10 @@ setInterval(
     function() {
         //console.log("Fetching...")
         server.fetchData();
-    }, 10000);
+    }, 100000);
+
+// Relog the bot to hopefully avoid the pubg api thinking we are spam
+//setInterval(
+//    function() {		
+//        bot.login(fileUtil.readAuthToken());
+//    }, 18000000);

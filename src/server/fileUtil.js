@@ -13,6 +13,7 @@ module.exports = {
             return JSON.parse(fs.readFileSync(playerFile));
         } catch (e) {
             // File is empty or invalid
+			console.log(e);
 			console.log("WARNING: Problem reading players.json. File is either empty or invalid.");
 			return new Map();
         }
@@ -24,7 +25,7 @@ module.exports = {
             return JSON.parse(fs.readFileSync(playerFile))[discordId];
         } catch (e) {
 			// File is empty or invalid
-			console.log("WARNING: Problem reading players.json. File is either empty or invalid.");
+			console.log("WARNING: Problem reading players.json using discordId. File is either empty or invalid.");
             return null;
         }
     },
@@ -37,7 +38,7 @@ module.exports = {
                 var player = playerMap[id];
                 player.init = undefined;
             }
-            fs.writeFile(playerFile, JSON.stringify(playerMap));
+            fs.writeFileSync(playerFile, JSON.stringify(playerMap));
         } catch (e) {
             console.log("Error writing to players.json");
         }
