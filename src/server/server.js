@@ -178,7 +178,7 @@ module.exports = {
 
     // Function to add a new player to the system
     createNewPlayer: function (discordName, pubgName) {
-        console.log("Adding user. Discordname: " + discordName + ", pubgname: " + pubgName);
+        console.log("Adding user. Sender Discordname: " + discordName + ", pubgname: " + pubgName);
 		let playerMap = fileUtil.readPlayerMap();
 		debugger;
         // Make sure the player doesn;t already exist
@@ -209,7 +209,60 @@ module.exports = {
 			return false;
         }
     },
+	
+	// Function to remove a player
+	removePlayer: function (discordName, pubgName) {
+		console.log("Removing user. Sender Discordname: " + discordName + ", pubgname: " + pubgName);
+		
+		// Validate the discord name is an admin
+		let adminList = fileUtil.readAdmins();
+		if (adminList.indexOf(discordName) == -1) {
+			console.log("Error removing player: " + pubgName + ". Request is not from an admin.");
+			bot.sendMessage("Error removing player: " + pubgName + ". Request is not from an admin.");
+			return false;
+		}
+		
+		// Remove the player
+		let playerMap = fileUtil.readPlayerMap();
+		for (var id in playerMap) {
+            var player = playerMap[id];
+            if(player.pubgName === pubgName) {
+				delete playerMap[id]
+				fileUtil.writePlayers(playerMap);
+				console.log("Removed player");
+				return true;
+			}
+        }
 
+		console.log("Error removing player. Player does not exist.");
+		bot.sendMessage("Error removing player. Player does not exist.");
+		return false;
+	},
+	
+	// Add an admin player. Requires admin unless the list is empty.
+	addAdmin: function (requestDiscordId, newAdminDiscordId) {
+		console.log("Adding admin. Sender Discordname: " + requestDiscordId + ", New admin discord id: " + newAdminDiscordId);
+		
+		let adminList = fileUtil.readAdmins();
+		
+		// Check if the new admin already exists
+		if (adminList.indexOf(newAdminDiscordId) != -1) {
+			console.log("User: <@" + newAdminDiscordId + "> is already an admin.");
+			bot.sendMessage("User: <@" + newAdminDiscordId + "> is already an admin.");
+			return false;
+		}
+		
+		// If the list is empty or the request is coming from an admin, add the new admin
+		if (adminList.length == 0 || adminList.indexOf(requestDiscordId) != -1) {
+			adminList.push(newAdminDiscordId);
+			fileUtil.writeAdmins(adminList);
+			console.log("Successfully added new admin: <@" + newAdminDiscordId + ">");
+			return true;
+		}
+		bot.sendMessage("<@" + newAdminDiscordId + "> is not an admin. Cannot add another admin.");
+		return false;
+	},
+	
     // Function to update player data
     fetchData: function () {
         fetchUpdatedPlayerData(fileUtil.readPlayerMap());
@@ -258,7 +311,7 @@ module.exports = {
         fetchUpdatedPlayerData(fileUtil.readPlayerMap());
         let player = fileUtil.readPlayer(discordUser);
         if (player !== null) {
-            console.log("Retrieved " + player.pubgName + "'s stats");
+            //console.log("Retrieved " + player.pubgName + "'s stats");
             return player;
         }
         return undefined;

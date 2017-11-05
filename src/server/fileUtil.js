@@ -1,12 +1,34 @@
 const playerFile = "../storage/players.json";
 const gifsFile = "../storage/winGifs.json";
 const channelFile = "../storage/channel.json";
+const adminFile = "../storage/admins.json";
 const authFile = require('../../auth.json');
 
 const fs = require('fs');
 
 module.exports = {
     
+	// Update the admins.json file
+    writeAdmins: function(adminList) {
+        try {
+            fs.writeFileSync(adminFile, JSON.stringify(adminList));
+        } catch (e) {
+            console.log("Error writing to admins.json");
+        }
+    },
+	
+	// Read the admins.json file
+    readAdmins: function() {
+        try {			
+            return JSON.parse(fs.readFileSync(adminFile));
+        } catch (e) {
+            // File is empty or invalid
+			console.log(e);
+			console.log("WARNING: Problem reading admins.json. File is either empty or invalid.");
+			return new Array();
+        }
+    },
+	
 	// Read the entire players.json file
     readPlayerMap: function() {
         try {
@@ -56,22 +78,49 @@ module.exports = {
         }
     },
 
-	// Write to the channel.json file
-    writeChannel: function(channel) {
+	// Write to the channel.json file for the stats channel
+    writeStatsChannel: function(channel) {
+		var file = JSON.parse(fs.readFileSync(channelFile));
+		file.statsChannel = channel.id;
         try {
             // Write to the channel.json file
-            fs.writeFile(channelFile, JSON.stringify(channel.id));
+            fs.writeFileSync(channelFile, JSON.stringify(file));
         } catch (e) {
-            console.log("Error writing to channel.json");
+            console.log("Error writing to channel.json for the stats channel");
         }
     },
 	
-	// Read from the channel.json file
-    readChannel: function() {
-        try {
-            return JSON.parse(fs.readFileSync(channelFile));
+	// Read from the channel.json file for the stats channel
+    readStatsChannel: function() {
+		try {
+            return JSON.parse(fs.readFileSync(channelFile)).statsChannel;
         } catch (e) {
-			console.log("WARNING: Problem reading channel.json. File is either empty or invalid.");
+			// File is empty or invalid
+			console.log("WARNING: Problem reading channel.json using discordId. File is either empty or invalid.");
+            return null;
+        }
+    },
+	
+	// Write to the channel.json file for the chicken channel
+    writeChickenChannel: function(channel) {
+		var file = JSON.parse(fs.readFileSync(channelFile));
+		file.chickenChannel = channel.id;
+		try {
+            // Write to the channel.json file
+            fs.writeFileSync(channelFile, JSON.stringify(file));
+        } catch (e) {
+            console.log("Error writing to channel.json for the chicken channel");
+        }
+    },
+	
+	// Read from the channel.json file for the chicken channel
+    readChickenChannel: function() {
+		try {
+            return JSON.parse(fs.readFileSync(channelFile)).chickenChannel;
+        } catch (e) {
+			// File is empty or invalid
+			console.log("WARNING: Problem reading channel.json using discordId. File is either empty or invalid.");
+            return null;
         }
     },
 	
