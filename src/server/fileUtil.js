@@ -1,4 +1,5 @@
 const playerFile = "../storage/players.json";
+const leaderboardFile = "../storage/leaderboard.json";
 const gifsFile = "../storage/winGifs.json";
 const channelFile = "../storage/channel.json";
 const adminFile = "../storage/admins.json";
@@ -41,6 +42,17 @@ module.exports = {
         }
     },
 
+    readLeaderboard: function(){
+        try{
+            return JSON.parse(fs.readFileSync(leaderboardFile))
+        } catch (e) {  
+        // File is empty or invalid
+        console.log(e);
+        console.log("WARNING: Problem reading leaderboard.json. File is either empty or invalid.");
+        return new Map();
+        }
+    },
+
     // Read a specific player from the players.json file
     readPlayer: function(discordId) {
         try {
@@ -63,6 +75,15 @@ module.exports = {
             fs.writeFileSync(playerFile, JSON.stringify(playerMap));
         } catch (e) {
             console.log("Error writing to players.json");
+        }
+    },
+
+    // Update the leaderboard.json file
+    writeLeaderboard: function(leaderboard) {
+        try {
+            fs.writeFileSync(leaderboardFile, JSON.stringify(leaderboard));
+        } catch (e) {
+            console.log("Error writing to leaders.json");
         }
     },
 
