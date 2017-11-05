@@ -13,6 +13,8 @@ Update for the future
 - Update the win posting if players won a match together
 - autopost updated leaderboard changes as they happen
 - add !shame @player and list out all of their undesireable stats like loses, team kills, ect..
+- add channel only for checking stats and leaderboard
+- add admins to this
 
 The full list of commands are as follows..
 
