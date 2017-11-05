@@ -174,6 +174,80 @@ const initPlayer = function (discordName, pubgName) {
     return player;
 };
 
+const getLeaderboardSkeleton = function(){
+    return {
+        kills: {
+            plainText : "kills",
+            value: 0,
+            matchType: [],
+            player: []
+          },
+          damagePg: {
+            plainText : "damange per game",
+            value: 0,
+            matchType: [],
+            player: []
+          },
+          roundMostKills: {
+            plainText : "most kills in a single round",
+            value: 0,
+            matchType: [],
+            player: []
+          },
+          headshots: {
+            plainText : "headshots",
+            value: 0,
+            matchType: [],
+            player: []
+          },
+          wins: {
+            plainText : "wins",
+            value: 0,
+            matchType: [],
+            player: []
+          },
+          kd: {
+            plainText : "k/d ratio",
+            value: 0,
+            matchType: [],
+            player: []
+          },
+          topTenRatio: {
+            plainText : "top ten ratio",
+            value: 0,
+            matchType: [],
+            player: []
+          },
+          winRatio: {
+            plainText : "win ratio",
+            value: 0,
+            matchType: [],
+            player: []
+          },
+          longestKill: {
+            plainText : "longest kill",
+            value: 0,
+            matchType: [],
+            player: []
+          },
+          damage: {
+            plainText : "total damage",
+            value: 0,
+            matchType: [],
+            player: []
+          }
+    };
+}
+getDiscordNameFromPubgName =  function(pubgName){
+    var playerMap = fileUtil.readPlayerMap();
+    for (var id in playerMap) {
+        var player = playerMap[id];
+        if(player.pubgName === pubgName) {
+            return player.discordName;
+        }
+    }
+}
+
 module.exports = {
 
     // Function to add a new player to the system
@@ -251,8 +325,60 @@ module.exports = {
 			}
 			return leader;
 		}
-	}, 
+    },
+    
+    calculateFullLeaderboard: function(){
+        var leaderboard = getLeaderboardSkeleton();
+        //var leaderboard = readLeaderboard();
+        var playerMap = fileUtil.readPlayerMap();
+        for(var player in playerMap){
+            player = playerMap[player];
+            for(var type in MATCH){
+                type = MATCH[type];
+                if(player[type].wins > 0){
+                    for(var stat in leaderboard){
+                        if(player[type][stat] >= leaderboard[stat].value){
+                            if(player[type][stat] == leaderboard[stat].value && !(leaderboard[stat].player.indexOf(player.pubgName) > -1)){
+                                leaderboard[stat].value = player[type][stat];
+                                leaderboard[stat].matchType.push(type);
+                                leaderboard[stat].player.push(player.pubgName);
+                            }
+                            if(player[type][stat] > leaderboard[stat].value){
+                                leaderboard[stat].value = player[type][stat];
+                                leaderboard[stat].matchType[0] = type;
+                                leaderboard[stat].player[0] = player.pubgName;
+                            }
+                            else if(leaderboard[stat].matchType.length == 0 || leaderboard[stat].player[0] == player.pubgName){
+                                leaderboard[stat].value = player[type][stat];
+                                leaderboard[stat].matchType[0] = type;
+                                leaderboard[stat].player[0] = player.pubgName;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return leaderboard;
+    },
 
+    detectLeaderboardDifference: function(currentLeaderboard){
+        var actualLeaderboard = fileUtil.readLeaderboard();
+        if (JSON.stringify(currentLeaderboard) !== JSON.stringify(actualLeaderboard)) {
+            for(var stat in actualLeaderboard){
+                if(actualLeaderboard[stat].value != currentLeaderboard[stat].value){
+                    if(!(actualLeaderboard[stat].player.indexOf(currentLeaderboard[stat].pubgName) > -1)){
+                        var outputMessage = 'Hey @everyone, <@' + getDiscordNameFromPubgName(currentLeaderboard[stat].player[0]) + '> just knocked <@' + getDiscordNameFromPubgName(actualLeaderboard[stat].player[0]) + '> off the leaderboard. \n';
+                        outputMessage += currentLeaderboard[stat].value +' '+currentLeaderboard[stat].plainText+ ' in '+currentLeaderboard[stat].matchType;
+                        bot.sendMessage(outputMessage);
+                    }
+                    actualLeaderboard[stat].value = currentLeaderboard[stat].value;
+                    actualLeaderboard[stat].matchType = currentLeaderboard[stat].matchType;
+                    actualLeaderboard[stat].player =  currentLeaderboard[stat].player;
+                }
+            }
+        }
+        return actualLeaderboard;
+    },
     // Function to update all players and return a specific player
     retrieveUpdatedPlayer: function (discordUser) {
         fetchUpdatedPlayerData(fileUtil.readPlayerMap());

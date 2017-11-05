@@ -79,7 +79,29 @@ bot.on("message", (message, channel) => {
 					bot.channels.get(channelId).send(outputMessage);
 				}
 			}
-        } 
+		}
+        if (message.content.startsWith("!leaderboard")) {
+			var leaderboard = fileUtil.readLeaderboard();
+			var outputMessage = "```";
+			for(var stat in leaderboard){
+				if(leaderboard[stat].player.length > 1){
+					outputMessage += leaderboard[stat].plainText + ":	";
+					for(var index in leaderboard[stat].player){
+						outputMessage += leaderboard[stat].player[index] + " and ";
+					}
+					outputMessage = outputMessage.substr(0, outputMessage.length - 5);
+					outputMessage += " are tied with " + leaderboard[stat].value + " in game modes ";
+					for(var indextwo in leaderboard[stat].player){
+						outputMessage += leaderboard[stat].matchType[indextwo] + ", ";
+					}
+					outputMessage = outputMessage.substr(0, outputMessage.length - 2) + " repectively\n";
+				}
+				else{
+					outputMessage += leaderboard[stat].plainText + " :	" + leaderboard[stat].player[0] + " with "+ leaderboard[stat].value+" in "+leaderboard[stat].matchType[0]+"\n";
+				}
+			}
+			bot.channels.get(channelId).send(outputMessage+"```");
+		} 
 		
 		// Gets the player's stats for a match type
 		if (message.content.startsWith("!stats")) {
@@ -156,7 +178,14 @@ setInterval(
     function() {
         //console.log("Fetching...")
         server.fetchData();
-    }, 100000);
+	}, 100000);
+setInterval(
+	function() {
+		var currentLeaderboard = server.detectLeaderboardDifference(server.calculateFullLeaderboard());
+		if (JSON.stringify(fileUtil.readLeaderboard()) !== JSON.stringify(currentLeaderboard)) {
+			fileUtil.writeLeaderboard(currentLeaderboard);
+		}
+	}, 300000);
 
 // Relog the bot to hopefully avoid the pubg api thinking we are spam
 //setInterval(
