@@ -251,4 +251,4 @@ setInterval(
 		if (JSON.stringify(fileUtil.readLeaderboard()) !== JSON.stringify(currentLeaderboard)) {
 			fileUtil.writeLeaderboard(currentLeaderboard);
 		}
-	}, 3000);
+	}, 300000);
