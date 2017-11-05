@@ -37,7 +37,7 @@ bot.on("message", (message, channel) => {
     }
 	
 	// Sets the chicken channel to send messages to
-    if (message.content.startsWith("!setchickenchannel")) {
+    else if (message.content.startsWith("!setchickenchannel")) {
         let adminList = fileUtil.readAdmins();
 		if (adminList.indexOf(message.author.id) == -1) {
 			console.log("Error setting channel. Request is not from an admin.");
@@ -52,7 +52,7 @@ bot.on("message", (message, channel) => {
     }
 	
 	// Add a new admin (Admin required)
-	if (message.content.startsWith("!addadmin ")) {
+	else if (message.content.startsWith("!addadmin ")) {
 		console.log(message.content.substring(12, message.content.length - 1));
         if (server.addAdmin(message.author.id, message.content.substring(12, message.content.length - 1))) {
             message.channel.send("Successfully added new admin: " + message.content.substring(10, message.content.length - 1) + ">");
@@ -61,8 +61,6 @@ bot.on("message", (message, channel) => {
     
 	// Get the currently set channels
 	if (message.content.startsWith("!getchannels")) {
-		bot.channels.get(statChannelId).name
-		console.log(bot.channels.get(chickenChannelId));
         message.channel.send("Stats channel: " + (bot.channels.get(statChannelId) === undefined ? "Not set." : bot.channels.get(statChannelId).name));
         message.channel.send("Chicken dinners channel: " + (bot.channels.get(chickenChannelId) === undefined ? "Not set." : bot.channels.get(chickenChannelId).name));
     }
@@ -146,7 +144,7 @@ bot.on("message", (message, channel) => {
 					outputMessage += leaderboard[stat].plainText + " :	" + leaderboard[stat].player[0] + " with "+ leaderboard[stat].value+" in "+leaderboard[stat].matchType[0]+"\n";
 				}
 			}
-			bot.channels.get(channelId).send(outputMessage+"```");
+			bot.channels.get(statChannelId).send(outputMessage+"```");
 		} 
 		
 		// Gets the player's stats for a match type
@@ -197,7 +195,7 @@ bot.on("message", (message, channel) => {
 			if (adminList.indexOf(message.author.id) != -1) {
 				helpMessage += "\n\nADMIN TOOLS\n" +
 				"!addadmin @discordname - Add an admin to the list of admins\n" +
-				"!removePlayer <pubgName> - Removes a player from the players list\n" + 
+				"!removeplayer <pubgName> - Removes a player from the players list\n" + 
 				"!setstatschannel - Sets the channel where stats can be requested\n" + 
 				"!setchickenchannel - Sets the channel where chicken dinners will be recorded";
 			}
@@ -206,10 +204,7 @@ bot.on("message", (message, channel) => {
 			return;
 		}
     }
-	// Check if a command was executed in the wrong channel
-	if (message.channel.id === chickenChannelId && message.content.startsWith("!")) {
-		bot.channels.get(chickenChannelId).send("That command will not work in this channel. Please enter your commands in the stats-channel.");
-	}
+
 	// Check if the chicken channel is set
 	if (message.content.startsWith("!") && bot.channels.get(chickenChannelId) === undefined) {
 		message.channel.send("The chicken winner channel has not been set yet. Please notify an admin.");
@@ -256,4 +251,4 @@ setInterval(
 		if (JSON.stringify(fileUtil.readLeaderboard()) !== JSON.stringify(currentLeaderboard)) {
 			fileUtil.writeLeaderboard(currentLeaderboard);
 		}
-	}, 300000);
+	}, 3000);

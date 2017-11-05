@@ -396,8 +396,10 @@ module.exports = {
                                 leaderboard[stat].matchType.push(type);
                                 leaderboard[stat].player.push(player.pubgName);
                             }
-                            if(player[type][stat] > leaderboard[stat].value){
+                            else if(player[type][stat] > leaderboard[stat].value){
                                 leaderboard[stat].value = player[type][stat];
+								leaderboard[stat].matchType = [];
+                                leaderboard[stat].player = [];
                                 leaderboard[stat].matchType[0] = type;
                                 leaderboard[stat].player[0] = player.pubgName;
                             }
