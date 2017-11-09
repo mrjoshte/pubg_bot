@@ -53,10 +53,16 @@ bot.on("message", (message, channel) => {
 	
 	// Add a new admin (Admin required)
 	else if (message.content.startsWith("!addadmin ")) {
-		console.log(message.content.substring(12, message.content.length - 1));
-        if (server.addAdmin(message.author.id, message.content.substring(12, message.content.length - 1))) {
-            message.channel.send("Successfully added new admin: " + message.content.substring(10, message.content.length - 1) + ">");
-        }
+		let newAdmin = message.content.substring(12, message.content.length - 1);
+		newAdmin = newAdmin.replace("!", ""); // Some channels have a '!' in the ID
+		console.log(newAdmin);
+		if(bot.users.get(newAdmin) === undefined) {
+			console.log("Failed to add admin. Id does not exist in this discord server.");
+			message.channel.send("Failed to add admin. New admin's ID does not exist in this discord server.");
+		}
+		else if (server.addAdmin(message.author.id, newAdmin)) {
+			message.channel.send("Successfully added new admin: <@" + newAdmin + ">");
+		}
     }
     
 	// Get the currently set channels
@@ -188,8 +194,8 @@ bot.on("message", (message, channel) => {
 			"!addme <pubg game name> - Add yourself to the system to get your stats\n" +
 			"!stats <match type> - Get your own stats for a match type. No match type will give you all your stats\n" +
 			"!leaderboard <match type> - Find out who the leader is for a match type. Match type required\n" +
-			"!getchannels - Returns the names of the set channels\n\n";
-			"Match types: " + server.retrieveMatchTypesList();
+			"!getchannels - Returns the names of the set channels\n\n" +
+			"Match types: " + server.retrieveMatchTypesList() + "\n";
 			
 			let adminList = fileUtil.readAdmins();
 			if (adminList.indexOf(message.author.id) != -1) {

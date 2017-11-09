@@ -421,7 +421,8 @@ module.exports = {
         if (JSON.stringify(currentLeaderboard) !== JSON.stringify(actualLeaderboard)) {
             for(var stat in actualLeaderboard){
                 if(actualLeaderboard[stat].value != currentLeaderboard[stat].value){
-                    if(!(actualLeaderboard[stat].player.indexOf(currentLeaderboard[stat].pubgName) > -1)){
+					console.log("Change in player")
+                    if(!(actualLeaderboard[stat].player.indexOf(currentLeaderboard[stat].pubgName) > -1) && currentLeaderboard[stat].player[0] !== actualLeaderboard[stat].player[0]){
                         var outputMessage = 'Hey @everyone, <@' + getDiscordNameFromPubgName(currentLeaderboard[stat].player[0]) + '> just knocked <@' + getDiscordNameFromPubgName(actualLeaderboard[stat].player[0]) + '> off the leaderboard. \n';
                         outputMessage += currentLeaderboard[stat].value +' '+currentLeaderboard[stat].plainText+ ' in '+currentLeaderboard[stat].matchType;
                         bot.sendMessage(outputMessage);
