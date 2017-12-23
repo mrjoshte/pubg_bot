@@ -3,6 +3,7 @@ const leaderboardFile = "../storage/leaderboard.json";
 const gifsFile = "../storage/winGifs.json";
 const channelFile = "../storage/channel.json";
 const adminFile = "../storage/admins.json";
+const seasonFile = "../storage/season.json";
 const authFile = require('../../auth.json');
 
 const fs = require('fs');
@@ -117,7 +118,7 @@ module.exports = {
             return JSON.parse(fs.readFileSync(channelFile)).statsChannel;
         } catch (e) {
 			// File is empty or invalid
-			console.log("WARNING: Problem reading channel.json using discordId. File is either empty or invalid.");
+			console.log("WARNING: Problem reading channel.json. File is either empty or invalid.");
             return null;
         }
     },
@@ -134,6 +135,7 @@ module.exports = {
         }
     },
 	
+	
 	// Read from the channel.json file for the chicken channel
     readChickenChannel: function() {
 		try {
@@ -142,6 +144,30 @@ module.exports = {
 			// File is empty or invalid
 			console.log("WARNING: Problem reading channel.json using discordId. File is either empty or invalid.");
             return null;
+        }
+    },
+	
+	// Read from the season.json file
+    readSeason: function() {
+		try {
+            return JSON.parse(fs.readFileSync(seasonFile)).season;
+        } catch (e) {
+			// File is empty or invalid
+			console.log(e);
+			console.log("WARNING: Problem reading season.json. File is either empty or invalid.");
+            return null;
+        }
+    },
+	
+	// Write to the season.json file
+    writeSeason: function(season) {
+		var file = JSON.parse(fs.readFileSync(seasonFile));
+		file.season = season;
+		try {
+            // Write to the season.json file
+            fs.writeFileSync(seasonFile, JSON.stringify(file));
+        } catch (e) {
+            console.log("Error writing to season.json");
         }
     },
 	

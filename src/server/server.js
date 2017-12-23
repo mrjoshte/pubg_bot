@@ -44,6 +44,7 @@ const getPlayerDataFromAPI = function (player) {
                     let longestKill = 0;
                     let damageDealt = 0;
                     try {
+						let season = fileUtil.readSeason();
                         /**
                          * @property combat
                          * @property combat.headshotKills
@@ -59,23 +60,46 @@ const getPlayerDataFromAPI = function (player) {
                             match: matchType
                         });
 
-                        kills = parseInt(stats.combat.kills);
-                        damagePg = parseInt(stats.perGame.damagePg);
-                        roundMostKills = parseInt(stats.combat.roundMostKills);
-                        suicides = parseInt(stats.combat.suicides);
-                        teamKills = parseInt(stats.combat.teamKills);
-                        headshots = parseInt(stats.combat.headshotKills);
+						// Check if there is a new season
+						let apiSeason = stats.season;
+						if(season.indexOf(apiSeason) == -1){
+							season.push(apiSeason);
+							fileUtil.writeSeason(season);
+							bot.sendMessage("Hey @everyone a new season has begun! The new season is: " + apiSeason
+							+ "\nThe leaderboard has been reset. Now's your chance to get on top of the leaderboard!");
+							
+							// Reset the leaderboard using the skeleton
+							fileUtil.writeLeaderboard(getLeaderboardSkeleton());
+						}
 
-                        wins = parseInt(stats.performance.wins);
-                        kd = parseFloat(stats.performance.killDeathRatio);
-                        topTenRatio = parseFloat(stats.performance.top10Ratio);
-                        winRatio = parseFloat(stats.performance.winRatio);
-                        losses = parseInt(stats.performance.losses);
+						// Check if the season in the response is the newest season
+						if(season[season.length - 1].localeCompare(apiSeason) != 0){
+							// Newest data for the player is old. Reset the player.
+							//console.log("Player data for: " + player.pubgName + " is old.");
+							player = initPlayer(player.discordName, player.pubgName);
+							player.init = undefined;
+							player.active = 0;
+						}
+						else{
+							kills = parseInt(stats.combat.kills);
+							damagePg = parseInt(stats.perGame.damagePg);
+							roundMostKills = parseInt(stats.combat.roundMostKills);
+							suicides = parseInt(stats.combat.suicides);
+							teamKills = parseInt(stats.combat.teamKills);
+							headshots = parseInt(stats.combat.headshotKills);
 
-                        longestKill = parseFloat(stats.distance.longestKill);
-                        damageDealt = parseInt(stats.support.damageDealt);
+							wins = parseInt(stats.performance.wins);
+							kd = parseFloat(stats.performance.killDeathRatio);
+							topTenRatio = parseFloat(stats.performance.top10Ratio);
+							winRatio = parseFloat(stats.performance.winRatio);
+							losses = parseInt(stats.performance.losses);
+
+							longestKill = parseFloat(stats.distance.longestKill);
+							damageDealt = parseInt(stats.support.damageDealt);
+						}
 
                     } catch (e) {
+						//console.log(e);
                     }
 
                     // Check if the player has any new wins
@@ -117,7 +141,7 @@ const getPlayerDataFromAPI = function (player) {
                 else {
                     // Don't update the players.json file unless there is a difference for the player
                     let tempPlayer = savedplayerMap[player.discordName];
-                    if (JSON.stringify(tempPlayer) !== JSON.stringify(player)) {
+                    if (JSON.stringify(tempPlayer).trim() !== JSON.stringify(player).trim()) {
                         savedplayerMap[player.discordName] = player;
                         console.log("Updating " + player.pubgName + "'s");
                         fileUtil.writePlayers(savedplayerMap);
@@ -153,6 +177,7 @@ const initPlayer = function (discordName, pubgName) {
     player.pubgName = pubgName;
     player.discordName = discordName;
     player.init = 1;
+	player.active = 1;
     Object.keys(MATCH).forEach(function (match) {
         let matchType = MATCH[match];
         player[matchType] = {
@@ -183,7 +208,7 @@ const getLeaderboardSkeleton = function(){
             player: []
           },
           damagePg: {
-            plainText : "damange per game",
+            plainText : "damage per game",
             value: 0,
             matchType: [],
             player: []
@@ -421,10 +446,15 @@ module.exports = {
         if (JSON.stringify(currentLeaderboard) !== JSON.stringify(actualLeaderboard)) {
             for(var stat in actualLeaderboard){
                 if(actualLeaderboard[stat].value != currentLeaderboard[stat].value){
-					console.log("Change in player")
                     if(!(actualLeaderboard[stat].player.indexOf(currentLeaderboard[stat].pubgName) > -1) && currentLeaderboard[stat].player[0] !== actualLeaderboard[stat].player[0]){
-                        var outputMessage = 'Hey @everyone, <@' + getDiscordNameFromPubgName(currentLeaderboard[stat].player[0]) + '> just knocked <@' + getDiscordNameFromPubgName(actualLeaderboard[stat].player[0]) + '> off the leaderboard. \n';
-                        outputMessage += currentLeaderboard[stat].value +' '+currentLeaderboard[stat].plainText+ ' in '+currentLeaderboard[stat].matchType;
+						var outputMessage;
+						if(actualLeaderboard[stat].player[0] === undefined){
+							outputMessage = 'Hey @everyone, <@' + getDiscordNameFromPubgName(currentLeaderboard[stat].player[0]) + '> was just placed on the leaderboard. \n';
+                        }
+						else{
+							outputMessage = 'Hey @everyone, <@' + getDiscordNameFromPubgName(currentLeaderboard[stat].player[0]) + '> just knocked <@' + getDiscordNameFromPubgName(actualLeaderboard[stat].player[0]) + '> off the leaderboard. \n';
+						}
+ 					    outputMessage += currentLeaderboard[stat].value +' '+currentLeaderboard[stat].plainText+ ' in '+currentLeaderboard[stat].matchType;
                         bot.sendMessage(outputMessage);
                     }
                     actualLeaderboard[stat].value = currentLeaderboard[stat].value;

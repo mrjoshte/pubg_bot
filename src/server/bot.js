@@ -51,6 +51,28 @@ bot.on("message", (message, channel) => {
         fileUtil.writeChickenChannel(message.channel);
     }
 	
+	// Returns the commands this bot can do
+	else if (message.content.startsWith("!help")) {
+		// Normal commands
+		var helpMessage = "Current bot commands: \n\n" +
+		"!addme <pubg game name> - Add yourself to the system to get your stats\n" +
+		"!stats <match type (optional)> - Get your own stats for a match type. No match type will give you all your stats\n" +
+		"!leaderboard <match type (optional)> - Find out who the leader is for a match type\n" +
+		"!inactiveplayers - Returns a list of players who have not played in the current season\n" +
+		"!getchannels - Returns the names of the set channels\n\n" +
+		"Match types: " + server.retrieveMatchTypesList() + "\n";
+		
+		// Admin commands
+		helpMessage += "\n\nADMIN TOOLS\n" +
+		"!addadmin @discordname - Add an admin to the list of admins\n" +
+		"!removeplayer <pubgName> - Removes a player from the players list\n" + 
+		"!setstatschannel - Sets the channel where stats can be requested\n" + 
+		"!setchickenchannel - Sets the channel where chicken dinners will be recorded";
+	
+		message.channel.send(helpMessage);
+		return;
+	}
+		
 	// Add a new admin (Admin required)
 	else if (message.content.startsWith("!addadmin ")) {
 		let newAdmin = message.content.substring(12, message.content.length - 1);
@@ -66,7 +88,7 @@ bot.on("message", (message, channel) => {
     }
     
 	// Get the currently set channels
-	if (message.content.startsWith("!getchannels")) {
+	else if (message.content.startsWith("!getchannels")) {
         message.channel.send("Stats channel: " + (bot.channels.get(statChannelId) === undefined ? "Not set." : bot.channels.get(statChannelId).name));
         message.channel.send("Chicken dinners channel: " + (bot.channels.get(chickenChannelId) === undefined ? "Not set." : bot.channels.get(chickenChannelId).name));
     }
@@ -81,14 +103,28 @@ bot.on("message", (message, channel) => {
         }
 		
 		// Remove a player from the players.json (Admin required)
-		if (message.content.startsWith("!removeplayer ")) {
+		else if (message.content.startsWith("!removeplayer ")) {
             if (server.removePlayer(message.author.id, message.content.substring(14, message.content.length))) {
                 message.channel.send(message.content.substring(7, message.content.length) + " was removed successfully!");
             }
         }
 		
+		// Get inactive players that have not played in the current season
+		else if (message.content.startsWith("!inactiveplayers")) {
+            var players = fileUtil.readPlayerMap();
+			var season = fileUtil.readSeason();
+			var inactivePlayers = "Players who have not played this season: " + season[season.length - 1] + "\n";
+			for(id in players){
+				var player = players[id];
+				if(player.active == 0){
+					inactivePlayers += player.pubgName + "\n";
+				}
+			}
+			bot.channels.get(statChannelId).send(inactivePlayers);
+        }
+		
 		// Get leaderboars stats for a matchtype
-        if (message.content.startsWith("!leaderboard ")) {
+        else if (message.content.startsWith("!leaderboard ")) {
             var matchType = message.content.substring(13, message.content.length);
 			var isValidMatchType = server.validateMatchType(matchType.toUpperCase());
 			if (isValidMatchType == false) {
@@ -130,7 +166,7 @@ bot.on("message", (message, channel) => {
 				}
 			}
 		}
-        if (message.content.startsWith("!leaderboard")) {
+        else if (message.content.startsWith("!leaderboard")) {
 			var leaderboard = fileUtil.readLeaderboard();
 			var outputMessage = "```";
 			for(var stat in leaderboard){
@@ -154,7 +190,7 @@ bot.on("message", (message, channel) => {
 		} 
 		
 		// Gets the player's stats for a match type
-		if (message.content.startsWith("!stats")) {
+		else if (message.content.startsWith("!stats")) {
             var matchType = message.content.substring(7, message.content.length).toLowerCase();
             var discordUser = message.author.id;
             var player = server.retrieveUpdatedPlayer(discordUser);
@@ -187,28 +223,6 @@ bot.on("message", (message, channel) => {
 				bot.channels.get(statChannelId).send(outputMessage);
             }
         }
-		
-		// Returns the commands this bot can do
-		if (message.content.startsWith("!help")) {
-			var helpMessage = "Current bot commands: \n\n" +
-			"!addme <pubg game name> - Add yourself to the system to get your stats\n" +
-			"!stats <match type> - Get your own stats for a match type. No match type will give you all your stats\n" +
-			"!leaderboard <match type> - Find out who the leader is for a match type. Match type required\n" +
-			"!getchannels - Returns the names of the set channels\n\n" +
-			"Match types: " + server.retrieveMatchTypesList() + "\n";
-			
-			let adminList = fileUtil.readAdmins();
-			if (adminList.indexOf(message.author.id) != -1) {
-				helpMessage += "\n\nADMIN TOOLS\n" +
-				"!addadmin @discordname - Add an admin to the list of admins\n" +
-				"!removeplayer <pubgName> - Removes a player from the players list\n" + 
-				"!setstatschannel - Sets the channel where stats can be requested\n" + 
-				"!setchickenchannel - Sets the channel where chicken dinners will be recorded";
-			}
-		
-			bot.channels.get(statChannelId).send(helpMessage);
-			return;
-		}
     }
 
 	// Check if the chicken channel is set
