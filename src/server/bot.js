@@ -262,9 +262,9 @@ exports.chickenDinner = function(winner) {
 // Retrieve player stats every 1 min 40 seconds
 setInterval(
     function() {
-        //console.log("Fetching...")
+        console.log("Fetching...")
         server.fetchData();
-    }, 100000);
+    }, 1000 * 60 * 2); // Every 2 minutes
 setInterval(
 	function() {
 		var currentLeaderboard = server.detectLeaderboardDifference(server.calculateFullLeaderboard());

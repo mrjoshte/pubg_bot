@@ -6,6 +6,7 @@
 const fileUtil = require('./fileUtil.js');
 const bot = require('./bot.js');
 const pubgTrackerAPIKey = fileUtil.readApiKey();
+const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
 const {
     PubgAPI,
@@ -24,12 +25,21 @@ const api = new PubgAPI({
 // Collect data from the pubg api
 const getPlayerDataFromAPI = function (player) {
     try {
-        api.getProfileByNickname(player.pubgName)
-            .then(function (profile) {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open("GET", 'https://api.pubg.com/shards/steam/players/' + player.playerId + '/seasons/' + fileUtil.readSeason() + '?filter[gamepad]=false', false); // false for synchronous request
+        xmlHttp.setRequestHeader("Authorization", "Bearer " + pubgTrackerAPIKey);
+        xmlHttp.setRequestHeader("accept", "application/vnd.api+json");
+        xmlHttp.send(null);
+        //console.log(xmlHttp.responseText);
+        //console.log(JSON.parse(xmlHttp.responseText));
+
+        var parsedResponseData = JSON.parse(xmlHttp.responseText);
+
+        var modes = parsedResponseData.data.attributes.gameModeStats;
+
                 Object.keys(MATCH).forEach(function (match) {
                     let matchType = MATCH[match];
                     let kills = 0;
-                    let damagePg = 0;
                     let roundMostKills = 0;
                     let suicides = 0;
                     let teamKills = 0;
@@ -37,14 +47,12 @@ const getPlayerDataFromAPI = function (player) {
 
                     let wins = 0;
                     let kd = 0;
-                    let topTenRatio = 0;
-                    let winRatio = 0;
+                    let topTens = 0;
                     let losses = 0;
 
                     let longestKill = 0;
                     let damageDealt = 0;
                     try {
-						let season = fileUtil.readSeason();
                         /**
                          * @property combat
                          * @property combat.headshotKills
@@ -55,51 +63,28 @@ const getPlayerDataFromAPI = function (player) {
                          * @property distance.top10Ratio
                          * @property support.damageDealt
                          */
-                        const stats = profile.getStats({
-                            region: REGION.NA,
-                            match: matchType
-                        });
+                      
 
-						// Check if there is a new season
-						let apiSeason = stats.season;
-						if(season.indexOf(apiSeason) == -1){
-							season.push(apiSeason);
-							fileUtil.writeSeason(season);
-							bot.sendMessage("Hey @everyone a new season has begun! The new season is: " + apiSeason
-							+ "\nThe leaderboard has been reset. Now's your chance to get on top of the leaderboard!");
-							
-							// Reset the leaderboard using the skeleton
-							fileUtil.writeLeaderboard(getLeaderboardSkeleton());
-						}
+                        const stats = modes[matchType];
+						
 
-						// Check if the season in the response is the newest season
-						if(season[season.length - 1].localeCompare(apiSeason) != 0){
-							// Newest data for the player is old. Reset the player.
-							//console.log("Player data for: " + player.pubgName + " is old.");
-							player = initPlayer(player.discordName, player.pubgName);
-							player.init = undefined;
-							player.active = 0;
-						}
-						else{
-							kills = parseInt(stats.combat.kills);
-							damagePg = parseInt(stats.perGame.damagePg);
-							roundMostKills = parseInt(stats.combat.roundMostKills);
-							suicides = parseInt(stats.combat.suicides);
-							teamKills = parseInt(stats.combat.teamKills);
-							headshots = parseInt(stats.combat.headshotKills);
+							kills = stats.kills;
+							roundMostKills = stats.roundMostKills;
+							suicides = stats.suicides;
+							teamKills = stats.teamKills;
+							headshots = stats.headshotKills;
 
-							wins = parseInt(stats.performance.wins);
-							kd = parseFloat(stats.performance.killDeathRatio);
-							topTenRatio = parseFloat(stats.performance.top10Ratio);
-							winRatio = parseFloat(stats.performance.winRatio);
-							losses = parseInt(stats.performance.losses);
+							kd = 0; // TODO
+							topTens = stats.top10s;
+							wins = stats.wins;
+							losses = stats.losses;
 
-							longestKill = parseFloat(stats.distance.longestKill);
-							damageDealt = parseInt(stats.support.damageDealt);
-						}
+							longestKill = stats.longestKill;
+							damageDealt = stats.damageDealt;
+						
 
                     } catch (e) {
-						//console.log(e);
+						console.log(e);
                     }
 
                     // Check if the player has any new wins
@@ -109,20 +94,20 @@ const getPlayerDataFromAPI = function (player) {
                         winner.match = matchType;
                         winner.kills = kills - player[matchType].kills;
                         winner.damage = damageDealt - player[matchType].damage;
+
                         bot.chickenDinner(winner);
                     }
 
                     // Update the player
                     player[matchType].kills = kills;
-                    player[matchType].damagePg = damagePg;
                     player[matchType].roundMostKills = roundMostKills;
                     player[matchType].suicides = suicides;
                     player[matchType].teamKills = teamKills;
                     player[matchType].headshots = headshots;
                     player[matchType].wins = wins;
                     player[matchType].kd = kd;
-                    player[matchType].topTenRatio = topTenRatio;
-                    player[matchType].winRatio = winRatio;
+                    player[matchType].topTens = topTens;
+                    player[matchType].wins = wins;
                     player[matchType].losses = losses;
                     player[matchType].longestKill = longestKill;
                     player[matchType].damage = damageDealt;
@@ -147,9 +132,9 @@ const getPlayerDataFromAPI = function (player) {
                         fileUtil.writePlayers(savedplayerMap);
                     }
                 }
-            });
     }
     catch (e) {
+        console.log(e);
 		console.log("Error trying to call pubg api to get player's stats.");
     }
 };
@@ -168,7 +153,7 @@ const fetchUpdatedPlayerData = function (savedplayerMap) {
 
 // Create a blank object used to help calculate the leaderboard
 const initLeader = function () {
-    return {wins: {num: -1, id: []}, kills: {num: -1, id: 0}, damagePg: {num: -1, id: 0}};
+    return {wins: {num: -1, id: []}, kills: {num: -1, id: 0}, damageDealt: {num: -1, id: 0}};
 };
 
 // Create a new player object
@@ -182,15 +167,14 @@ const initPlayer = function (discordName, pubgName) {
         let matchType = MATCH[match];
         player[matchType] = {
             kills: 0,
-            damagePg: 0,
             roundMostKills: 0,
             suicides: 0,
             teamKills: 0,
             headshots: 0,
             wins: 0,
             kd: 0,
-            topTenRatio: 0,
-            winRatio: 0,
+            topTens: 0,
+            wins: 0,
             losses: 0,
             longestKill: 0,
             damage: 0
@@ -203,12 +187,6 @@ const getLeaderboardSkeleton = function(){
     return {
         kills: {
             plainText : "kills",
-            value: 0,
-            matchType: [],
-            player: []
-          },
-          damagePg: {
-            plainText : "damage per game",
             value: 0,
             matchType: [],
             player: []
@@ -237,13 +215,13 @@ const getLeaderboardSkeleton = function(){
             matchType: [],
             player: []
           },
-          topTenRatio: {
+          topTens: {
             plainText : "top ten ratio",
             value: 0,
             matchType: [],
             player: []
           },
-          winRatio: {
+          wins: {
             plainText : "win ratio",
             value: 0,
             matchType: [],
@@ -284,20 +262,26 @@ module.exports = {
         if (playerMap[discordName] === undefined) {
             debugger;
 			try {
-				api.getProfileByNickname(pubgName)
-					.then(function () {
-						let player = initPlayer(discordName, pubgName);
-						playerMap[discordName] = player;
-						getPlayerDataFromAPI(player);
-						console.log("Successfully added player: " + pubgName);
-						return true;
-					}, function (error) {
-						console.log("Player name does not exist in the pubg api.");
-						bot.sendMessage("Player name does not exist in the pubg api.");
-						return false;
-					});
+                let player = initPlayer(discordName, pubgName);
+				playerMap[discordName] = player;
+
+                //console.log(pubgTrackerAPIKey);
+               // console.log(pubgName);
+
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.open("GET", 'https://api.pubg.com/shards/steam/players?filter[playerNames]=' + pubgName, false); // false for synchronous request
+                xmlHttp.setRequestHeader("Authorization", "Bearer " + pubgTrackerAPIKey);
+                xmlHttp.setRequestHeader("accept", "application/vnd.api+json");
+                xmlHttp.send(null);
+                //console.log(xmlHttp.responseText);
+               // console.log(JSON.parse(xmlHttp.responseText));
+
+                player.playerId = JSON.parse(xmlHttp.responseText).data[0].id;
+
+				getPlayerDataFromAPI(player);
 			}
 			catch (e) {
+                console.log(e);
 				console.log("Error retrieving initial player data from the pubg api.");
 				bot.sendMessage("Error retrieving initial player data from the pubg api.");
 				return false;
@@ -396,10 +380,6 @@ module.exports = {
 					leader.kills.num = player[matchType].kills;
 					leader.kills.id = player.discordName;
 				}
-				if(player[matchType].damagePg > leader.damagePg.num){
-					leader.damagePg.num = player[matchType].damagePg;
-					leader.damagePg.id = player.discordName;
-				}
 			}
 			return leader;
 		}
@@ -443,7 +423,7 @@ module.exports = {
 
     detectLeaderboardDifference: function(currentLeaderboard){
         var actualLeaderboard = fileUtil.readLeaderboard();
-        if (JSON.stringify(currentLeaderboard) !== JSON.stringify(actualLeaderboard)) {
+        /*if (JSON.stringify(currentLeaderboard) !== JSON.stringify(actualLeaderboard)) {
             for(var stat in actualLeaderboard){
                 if(actualLeaderboard[stat].value != currentLeaderboard[stat].value){
                     if(!(actualLeaderboard[stat].player.indexOf(currentLeaderboard[stat].pubgName) > -1) && currentLeaderboard[stat].player[0] !== actualLeaderboard[stat].player[0]){
@@ -462,7 +442,7 @@ module.exports = {
                     actualLeaderboard[stat].player =  currentLeaderboard[stat].player;
                 }
             }
-        }
+        }*/
         return actualLeaderboard;
     },
     // Function to update all players and return a specific player
